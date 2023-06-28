@@ -1,0 +1,10 @@
+.navbar {
+    background-color: #5f5b80;
+}
+.body {
+    background-color: #a4b3c1;
+    min-height: 100vh;
+}
+.btn-submit {
+    background-color: #7e799a;
+}
