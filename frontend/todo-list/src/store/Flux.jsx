@@ -61,7 +61,6 @@ const getState = ({ setStore, getActions, getStore }) => {
             console.log(error);
           });
       },
-
       setUsername: (data, navigate) => {
         const { user_id, token } = getStore();
         const url = "http://localhost:8585/userlist/";
@@ -86,7 +85,6 @@ const getState = ({ setStore, getActions, getStore }) => {
             toast.error("Server error!");
           });
       },
-
       getUser: (navigate) => {
         const {user_id, token} = getStore()
         const url = "http://localhost:8585/user/";
@@ -133,6 +131,7 @@ const getState = ({ setStore, getActions, getStore }) => {
           user_id: "",
           token: "",
           email: "",
+          username: "",
           tasks: [],
         });
         toast.success("Logout successfully.");
