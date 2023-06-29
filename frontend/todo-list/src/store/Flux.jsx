@@ -131,8 +131,8 @@ const getState = ({ setStore, getActions, getStore }) => {
           user_id: "",
           token: "",
           email: "",
-          username: "",
           tasks: [],
+          username: "",
         });
         toast.success("Logout successfully.");
       },
