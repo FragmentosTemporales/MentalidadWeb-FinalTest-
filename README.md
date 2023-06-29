@@ -4,6 +4,7 @@
 ## My name is Cristian Rivera and I will detail the content you will find.
 
 1.-Backend created with Python-Flask-SQLAlchemy
+
 2.-Frontend created with React
 
 ## Backend:
