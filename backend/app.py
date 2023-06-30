@@ -11,8 +11,12 @@ from routes.main import main
 
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test.db"
-app.config["JWT_SECRET_KEY"] = "super-secret"
+app.config.update(
+    SQLALCHEMY_DATABASE_URI="sqlite:///test.db",
+    JWT_SECRET_KEY="super-secret",
+    DEBUG = True
+)
+
 app.register_blueprint(main)
 db.init_app(app)
 
