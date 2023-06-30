@@ -12,6 +12,7 @@ class User(db.Model):
     task = db.relationship("Task", cascade="delete")
 
     def serialize(self):
+        """Retorna el valor de user"""
         return {
             "id": self.id,
             "username": self.username,
@@ -29,6 +30,7 @@ class Task(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     
     def serialize(self):
+        """Retorna el valor de task"""
         return {
             "id": self.id,
             "task": self.task,
