@@ -1,6 +1,5 @@
 from flask import render_template
 from app import app
-from config.config import host, port
 
 def page_not_found(error):
     return render_template("not_found.html")
@@ -8,4 +7,4 @@ def page_not_found(error):
 
 if __name__ == "__main__":
     app.register_error_handler(404, page_not_found),
-    app.run(host=host, port=port)
+    app.run(debug=True)

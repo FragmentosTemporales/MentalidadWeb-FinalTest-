@@ -5,7 +5,7 @@ import { Context } from "../store/Context";
 import CompletedTasksList from "../component/_completedTasks";
 
 function Home() {
-  const { store, actions } = useContext(Context);
+  const { store } = useContext(Context);
   const { username } = store;
   return (
     <main className="body container-fluid">
