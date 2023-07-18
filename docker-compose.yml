@@ -1,7 +1,9 @@
 version: "3"
 services:
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
     image: backend
     ports:
       - "8585:5000"
@@ -14,7 +16,9 @@ services:
     command: flask run
   
   frontend:
-    build: ./todo-list
+    build:
+      context: ./todo-list
+      dockerfile: Dockerfile
     image: frontend
     ports:
       - "3000:3000"
@@ -22,4 +26,4 @@ services:
       - ./todo-list:/user/src/app
     depends_on:
       - backend
-    command: npm start
+    command: sh -c "npm install && npm start"
