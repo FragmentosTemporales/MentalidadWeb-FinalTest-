@@ -22,7 +22,7 @@ function UpdateTask() {
   };
   useEffect(() => {
     getTask();
-  }, []);
+  });
 
   const onSubmit = (data) => {
     actions.updateTask(data, id);
