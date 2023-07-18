@@ -11,6 +11,7 @@ services:
       FLASK_ENV: development
       FLASK_RUN_PORT: "5000"
       FLASK_HOST: "0.0.0.0"
+    command: flask run
   
   frontend:
     build: ./todo-list
@@ -21,3 +22,4 @@ services:
       - ./todo-list:/user/src/app
     depends_on:
       - backend
+    command: npm start
