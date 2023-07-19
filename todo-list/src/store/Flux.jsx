@@ -243,7 +243,7 @@ const getState = ({ setStore, getActions, getStore }) => {
           },
           method: "PUT",
           body: JSON.stringify({
-            isCompleted: true,
+            is_completed: true,
           }),
         })
           .then((res) => res.json())
@@ -267,7 +267,7 @@ const getState = ({ setStore, getActions, getStore }) => {
           },
           method: "PUT",
           body: JSON.stringify({
-            isCompleted: false,
+            is_completed: false,
           }),
         })
           .then((res) => res.json())

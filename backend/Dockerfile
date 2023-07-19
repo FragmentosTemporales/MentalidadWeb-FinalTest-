@@ -1,24 +1,21 @@
-#Utilizamos python con alpine
-FROM python:3.9-alpine
+FROM python:3.9
 
-#instalamos y actualizamos python y pip
-RUN apk add --no-cache python3-dev \
-    && pip3 install --upgrade pip
+RUN apt-get update && apt-get install -qq -y \
+  build-essential libpq-dev --no-install-recommends
+RUN apt-get install -y netcat-openbsd
 
-#establecemos el directorio de trabajo    
-WORKDIR /src/app
+WORKDIR /usr/src/app
 
-#establecemos variables de entorno
-ENV FLASK_APP index.py
-ENV FLASK_RUN_HOST 0.0.0.0
+COPY ./requirements-dev.txt /usr/src/app/requirements-dev.txt
+COPY ./requirements.txt /usr/src/app/requirements.txt
 
-#para mejorar respuesta de sqlalchemy
-RUN apk add --no-cache gcc musl-dev linux-headers
+RUN pip install --upgrade pip
 
-#copiamos requirements.txt
-COPY requirements.txt requirements.txt
+RUN pip install -r requirements-dev.txt
+RUN pip install -r requirements.txt
 
-#instalamos requirements.txt
-RUN pip3 --no-cache-dir install -r requirements.txt
+COPY . /usr/src/app/
+RUN chmod 755 /usr/src/app/entrypoint.sh
 
-COPY . .
+# run entrypoint
+ENTRYPOINT ["bash", "/usr/src/app/entrypoint.sh"]

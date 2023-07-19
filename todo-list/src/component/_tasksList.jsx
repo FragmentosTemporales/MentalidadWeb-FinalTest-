@@ -11,11 +11,12 @@ function TasksList() {
   };
   const handleClick = (id) => {
     actions.setCompleted(id);
+    console.log(id);
   };
 
   useEffect(() => {}, [tasks]);
 
-  const incompleteTasks = tasks.filter((task) => !task.isCompleted);
+  const incompleteTasks = tasks.filter((task) => !task.is_completed);
 
   return (
     <div className="container-fluid d-flex justify-content-center">

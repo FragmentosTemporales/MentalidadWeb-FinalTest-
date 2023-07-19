@@ -13,7 +13,7 @@ function CompletedTasksList() {
   };
   useEffect(() => {}, [tasks]);
 
-  const completedTasks = tasks.filter((task) => task.isCompleted);
+  const completedTasks = tasks.filter((task) => task.is_completed);
 
   return (
     <div className="container-fluid d-flex justify-content-center">
