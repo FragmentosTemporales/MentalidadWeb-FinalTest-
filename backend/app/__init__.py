@@ -3,6 +3,8 @@ from flask import Flask
 from app.config import config
 from app.models import db, migrate
 from app.routes import cors, jwt, main
+from app.schemas import ma
+
 
 
 def create_app(test_mode=False):
@@ -19,4 +21,5 @@ def create_app(test_mode=False):
     jwt.init_app(app)
     cors.init_app(app)
     app.register_blueprint(main)
+    ma.init_app(app)
     return app

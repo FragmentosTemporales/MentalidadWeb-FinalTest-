@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 db = SQLAlchemy()
@@ -51,18 +52,34 @@ class User(Base):
     task = db.relationship("Task", cascade="delete")
 
     def serialize(self):
-        """Retorna el valor de user"""
+        """ Return the user data """
         return {
             "id": self.id,
             "username": self.username,
             "email": self.email,
             "is_disabled": self.is_disabled
         }
-    
+
+    def set_password(self, password):
+        """ Setting password for user """
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password):
+        """ Checking password for user """
+        return check_password_hash(self.password, password)
+
     @classmethod
     def find_by_email(cls, email):
         """ Find user by email address """
-        return cls.query.filter_by(email=email).first()    
+        return cls.query.filter_by(email=email).first()
+
+    @staticmethod
+    def exists(email):
+        """ Check if user exists """
+        user = User.find_by_email(email)
+        if user:
+            return True
+        return False
 
 
 class Task(Base):

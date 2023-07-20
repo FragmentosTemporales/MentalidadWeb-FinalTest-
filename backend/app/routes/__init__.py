@@ -1,5 +1,5 @@
 import logging
-from flask import request, jsonify, render_template, Blueprint
+from flask import Blueprint, current_app, jsonify, render_template, request
 from flask_cors import CORS
 from flask_jwt_extended import (
     create_access_token,
@@ -7,65 +7,41 @@ from flask_jwt_extended import (
     JWTManager
 )
 from werkzeug.security import check_password_hash, generate_password_hash
+from app.messages import (
+    ERR_500,
+    ERR_DISABLED_ACC,
+    ERR_EXISTING_USER,
+    ERR_PROCESSING_REQ,
+    ERR_USER_NOT_FOUND,
+    ERR_USER_NOT_FOUND,
+    ERR_TASK_EMPTY,
+    ERR_TASK_NOT_FOUND,
+    ERR_WRONG_USER_PASS,
+    SUC_NEW_USER,
+    SUC_TASK_OK,
+    SUC_TASK_UPDATED,
+    SUC_TASK_DELETED,
+    SUC_USER_UPDATED,
+)
 from app.models import db, User, Task
+from app.schemas import TaskSchema, UserSchema, LoginSchema
 
 
 main = Blueprint("main", __name__)
 jwt = JWTManager()
 cors = CORS(resources={r"/*": {"origins": "*"}})
-SUC_USER_UPDATED = {
-    "message": "Usuario actualizado"
-}
-ERR_EXISTING_USER = {
-    "error": "La cuenta ya existe o está deshabilitada."
-}
-ERR_EXISTING_EMAIL = {
-    "error": "El correo ya existe en la base de datos."
-}
-ERR_WRONG_USER_PASS = {
-    "error": "El usuario o la contraseña son incorrectos"
-}
-ERR_PROCESSING_REQ = {
-    "error": "Error al procesar la solicitud"
-}
-ERR_DISABLED_ACC = {
-    "error": "Cuenta deshabilitada."
-}
-ERR_USER_NOT_FOUND = {
-    "error": "Usuario no encontrado"
-}
-ERR_TASK_EMPTY = {
-    "error": "El valor de Tarea no puede estar vacío"
-}
-SUC_TASK_OK = {
-    "message": "Tarea guardada exitósamente"
-}
-ERR_500 = {
-    "error": "Error al procesar la solicitud"
-}
-SUC_NEW_USER = {
-    "message": "Usuario guardado"
-}
-ERR_TASK_NOT_FOUND = {
-    "error": "Tarea no encontrada"
-}
-SUC_TASK_UPDATED = {
-    "message": "Tarea modificada con éxito."
-}
-SUC_TASK_DELETED = {
-    "message": "Tarea eliminada"
-}
-ERR_USER_NOT_FOUND = {
-    "error": "Usuario no encontrado"
-}
+
+# Defining the schemas
+task_schema = TaskSchema()
+tasks_schema = TaskSchema(many=True)
+user_schema = UserSchema()
+login_schema = LoginSchema()
+
 
 
 @main.route("/")
 def home():
-    """
-        Esta función retorna la vista Home del proyecto, esta vista está
-        creada con HTML
-    """
+    """ Home function """
     return render_template("index.html")
 
 
@@ -73,26 +49,25 @@ def home():
 def create_user():
     """Recibe parámetros a través de la consulta y crea el usuario."""
     try:
-        username = request.json.get("username")
-        email = request.json.get("email")
-        password = request.json.get("password")
-        password_hash = generate_password_hash(password)
-        existing_user = User.find_by_email(email)
-        if existing_user or \
-           (isinstance(existing_user, User) and existing_user.is_disabled):
-            return jsonify(ERR_EXISTING_USER), 400
-        data = {
-            "username": username,
-            "email": email,
-            "password": password_hash
-        }
-        user = User(**data)
-        user.save_to_db()
-        return jsonify(SUC_NEW_USER), 201
+        args_json = request.get_json()
+        try:
+            args = user_schema.load(args_json)
+        except Exception as e:
+            print(e)
+            raise e
+        else:
+            email = args["email"]
+            password = args["password"]
+            user_exists = User.exists(email)
+            if user_exists:
+                return jsonify(ERR_EXISTING_USER), 400
+            user = User(**args)
+            user.set_password(password)
+            user.save_to_db()
+            return jsonify(SUC_NEW_USER), 201
     except Exception as e:
         error_message = str(e)
         logging.error(f"Error en create_user: {error_message}")
-        raise e
         return jsonify(ERR_500), 500
 
 
@@ -100,34 +75,37 @@ def create_user():
 def login_user():
     """Recibe parámetros a través de la consulta y retorna un token"""
     try:
-        email = request.json.get("email")
-        password = request.json.get("password")
-        user = User.find_by_email(email)
+        args_json = request.get_json()
+        try:
+            args = login_schema.load(args_json)
+        except Exception as e:
+            print (e)
+            raise e
+        else:
+            email = args["email"]
+            password = args["password"]
+            user = User.find_by_email(email)
+            
+            if user is None or \
+               user.check_password(password) == False:
+                return jsonify(ERR_WRONG_USER_PASS), 400
 
-        if user is None:
-            return jsonify(ERR_WRONG_USER_PASS), 400
+            access_token = create_access_token(email)
+            user.is_disabled = False
+            user.save_to_db()
 
-        is_valid = check_password_hash(user.password, password)
-        if not is_valid:
-            return jsonify(ERR_WRONG_USER_PASS), 400
-        
-        access_token = create_access_token(email)
-        user.is_disabled = False
-        user.save_to_db()
-
-        return (
-            jsonify(
-                {
-                    "token": access_token,
-                    "user_id": user.id,
-                    "email": user.email,
-                    "username": user.username,
-                }
-            ),
-            200,
-        )
+            return jsonify(
+                    {
+                        "token": access_token,
+                        "user": user_schema.dump(user),
+                        "email": user.email,
+                        "username": user.username,
+                        "user_id": user.id,
+                    }
+            ), 200
     except Exception as e:
         error_message = str(e)
+        print(e)
         logging.error(f"Error en login_user: {error_message}")
         return jsonify(ERR_500), 500
 
@@ -137,8 +115,9 @@ def get_user(user_id):
     """Retorna la información del usuario según su ID"""
     try:
         user = User.find_by_id(user_id)
-        if user is not None:
-            return jsonify(user.serialize())
+        if user:
+            print(user)
+            return jsonify(user_schema.dump(user))
 
         return jsonify(ERR_USER_NOT_FOUND), 404
 
@@ -174,14 +153,19 @@ def update_user(id):
 def create_task():
     """Recibe parámetros para crear la tarea."""
     try:
-        title = request.json.get("task")
-        description = request.json.get("description")
-        user_id = request.json.get("user_id")
-        if not title:
-            return jsonify(ERR_TASK_EMPTY), 400
-        task = Task(task=title, description=description, user_id=user_id)
-        task.save_to_db()
-        return jsonify(SUC_TASK_OK), 201
+        args_json = request.get_json()
+        print("primer var",args_json)
+
+        try:
+            args = task_schema.load(args_json)
+        except Exception as e:
+            print ("exep: ",e)
+            raise e
+        else:
+            if not args["task"]:
+                return jsonify(ERR_TASK_EMPTY), 400
+            Task(**args).save_to_db()
+            return jsonify(SUC_TASK_OK), 201
     except Exception as e:
         error_message = str(e)
         logging.error(f"Error en create_task: {error_message}")
@@ -194,17 +178,10 @@ def get_tasks(user_id):
     """Retorna lista de tareas del usuario encontrado por el ID"""
     try:
         tasks = Task.find_all_by_user_id(user_id)
-        tasks_list = []
-        for task in tasks:
-            task_dict = {
-                "id": task.id,
-                "task": task.task,
-                "description": task.description,
-                "user_id": task.user_id,
-                "is_completed": task.is_completed,
-            }
-            tasks_list.append(task_dict)
-        return jsonify(tasks_list), 200
+        if tasks:
+            return jsonify(tasks_schema.dump(tasks)), 200
+
+        return jsonify(ERR_USER_NOT_FOUND), 404
 
     except Exception as e:
         error_message = str(e)
@@ -225,12 +202,13 @@ def update_or_delete_task(id):
             task.delete_from_db()
             return jsonify(SUC_TASK_DELETED), 204
 
-        print(request.json)
-        task.task = request.json.get("task", task.task)
-        task.description = request.json.get("description", task.description)
-        task.is_completed = request.json.get("is_completed")
-        task.save_to_db()
-        return jsonify(SUC_TASK_UPDATED), 200
+        args_json = request.get_json()
+        try:
+            task.update(**args_json)
+            return jsonify(SUC_TASK_UPDATED), 200
+        except Exception as e:
+            print (e)
+            raise e
 
     except Exception as e:
         error_message = str(e)

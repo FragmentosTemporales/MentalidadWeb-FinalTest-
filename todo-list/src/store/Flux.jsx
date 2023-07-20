@@ -44,7 +44,10 @@ const getState = ({ setStore, getActions, getStore }) => {
             password,
           }),
         })
-          .then((res) => res.json())
+          .then((res) => {
+            if (!res.ok) throw Error(res.status);
+            return res.json()
+          })
           .then((res) => {
             setStore({
               token: res.token,
@@ -208,9 +211,9 @@ const getState = ({ setStore, getActions, getStore }) => {
           });
       },
       updateTask: ({ task, description }, id) => {
-        const { token } = getStore();
-        const url = "http://localhost:8585/task/";
-        const urlToFetch = url + id;
+        const { token, user_id } = getStore();
+        console.log(user_id);
+        const urlToFetch = `http://localhost:8585/task/${id}`;
         fetch(urlToFetch, {
           headers: {
             "Content-Type": "application/json",
@@ -218,8 +221,11 @@ const getState = ({ setStore, getActions, getStore }) => {
           },
           method: "PUT",
           body: JSON.stringify({
+            id,
             task,
             description,
+            is_completed: false,
+            user_id
           }),
         })
           .then((res) => res.json())

@@ -13,16 +13,26 @@ function UpdateTask() {
   } = useForm();
   const { actions, store } = useContext(Context);
   const { tasks } = store;
-  const [task, setTask] = useState({ task: "", description: "" });
+  const [task, setTask] = useState({ 
+    task: null,
+    description: null,
+    is_completed: null
+  });
   const navigate = useNavigate()
   
   const getTask = () => {
     let taskFind = tasks.find((task) => task.id === parseInt(id));
-    setTask(taskFind);
+    setTask({...taskFind});
   };
   useEffect(() => {
-    getTask();
+    getTask()
   });
+
+  const handleChange = (event) => {
+    console.log(task);
+    setTask(event.target.value);
+  };
+
 
   const onSubmit = (data) => {
     actions.updateTask(data, id);
@@ -40,6 +50,7 @@ function UpdateTask() {
                 placeholder={task.task}
                 maxLength={100}
                 type="text"
+                name="task"
                 className="form-control rounded-0"
                 {...register("task", { required: true })}
               />
@@ -51,6 +62,7 @@ function UpdateTask() {
               <label htmlFor="description">Upgrade the Description</label>
               <input
                 placeholder={task.description}
+                name="description"
                 maxLength={500}
                 type="text"
                 className="form-control rounded-0"

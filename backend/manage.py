@@ -23,15 +23,13 @@ def greeting(name, age):
 @click.option("--password", required=True)
 def create_user(username, email, password):
     """ Create user in the platform by command line interface """
-    existing_user = User.query.filter_by(email=email).first()
-    if existing_user:
+    if User.exists(email):
         return "ERROR: El usuario ya existe en la plataforma"
-    password_hash = generate_password_hash(password)
     try:
-        user = User(username=username, password=password_hash, email=email)
+        user = User(username=username, password=password, email=email)
+        user.set_password(password)
         user.save_to_db()
     except Exception as e:
-        print(e)
         raise e
 
 
