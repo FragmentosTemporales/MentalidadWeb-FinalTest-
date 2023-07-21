@@ -1,6 +1,6 @@
 import unittest
 from tests import BaseTestCase
-from tests.samples.utils import (
+from tests.utils.sample1 import (
     add_two_numbers,
     substract_two_numbers,
     multiply_two_numbers,

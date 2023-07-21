@@ -39,7 +39,7 @@ def test(test_name=None):
     """ Runs the unit tests."""
     import unittest
     if test_name is None:
-        tests = unittest.TestLoader().discover('tests', pattern="test*.py")
+        tests = unittest.TestLoader().discover('tests', pattern="test_*.py")
     else:
         tests = unittest.TestLoader().loadTestsFromName('tests.' + test_name)
     result = unittest.TextTestRunner(verbosity=2).run(tests)
