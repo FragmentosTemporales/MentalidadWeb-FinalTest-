@@ -105,16 +105,6 @@ class Task(Base):
     is_completed = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def serialize(self):
-        """Retorna el valor de task"""
-        return {
-            "id": self.id,
-            "task": self.task,
-            "description": self.description,
-            "user_id": self.user_id,
-            "is_completed": self.is_completed
-        }
-
     def set_as_completed(self, completed=True):
         """ Set task as completed """
         self.is_completed = completed
