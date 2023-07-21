@@ -38,7 +38,13 @@ class TestTaskModel(BaseTestCase):
         for key in self.params.keys():
             self.assertEqual(getattr(task, key), self.params[key])
 
-
+    def test_delete_from_database_success(self):
+        """ Test deleting task from db is success """
+        task = save_task_to_db(self.data)
+        id = task.id
+        task.delete_from_db()
+        deleted_task = Task.find_by_id(id)
+        self.assertIsNone(deleted_task)
 
     "filtrar id, tareas de usuario, borrar tareas, "
 
