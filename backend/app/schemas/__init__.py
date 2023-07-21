@@ -13,6 +13,7 @@ class UserSchema(SQLAlchemyAutoSchema):
 
     password = auto_field(load_only=True)
 
+
 class LoginSchema(ma.Schema):
     """ Serializer for logs users in """
     email = fields.Email(
@@ -33,6 +34,7 @@ class LoginSchema(ma.Schema):
             "invalid": "El valor ingresado no es una contraseña válida."
         }
     )
+
 
 class TaskSchema(SQLAlchemyAutoSchema):
     class Meta:

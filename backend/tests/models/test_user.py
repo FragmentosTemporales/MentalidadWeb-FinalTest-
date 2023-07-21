@@ -26,7 +26,7 @@ class TestUserModel(BaseTestCase):
             "username": "testing 2",
             "email": "test@test.com",
             "is_disabled": True
-        } 
+        }
 
     def test_string_representation(self):
         """ Test string representation of user model """
@@ -57,7 +57,9 @@ class TestUserModel(BaseTestCase):
     def test_email_normalized(self):
         """ Test user email is normalized after save into db """
         user = save_user_to_db(self.data_email_upper)
-        self.assertEquals(user.email, self.data_email_upper["email"].lower())
+        user_saved = User.find_by_email(user.email)
+        self.assertEquals(
+            user_saved.email, self.data_email_upper["email"].lower())
 
     def test_update_success(self):
         """ Test update user is success """
@@ -67,7 +69,7 @@ class TestUserModel(BaseTestCase):
             self.assertEqual(getattr(user, key), self.params[key])
 
     # TODO: Revisar este caso.
-    def test_update_fails_because_email_duplicated(self): 
+    def test_update_fails_because_email_duplicated(self):
         """ Test user update fails because already exists in db """
         pass
 

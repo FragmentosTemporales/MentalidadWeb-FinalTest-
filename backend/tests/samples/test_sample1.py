@@ -29,10 +29,8 @@ class TestExample1(BaseTestCase):
         """ Test substracting two numbers """
         result = self.n1 - self.n2
         self.assertEqual(
-            result, substract_two_numbers(self.n1, self.n2)
+            result, substract_two_numbers(self.n1, self.n2))
 
-        )
-    
     def test_multiply_two_numbers(self):
         """ Test Multiply two numbers """
         result = self.n1 * self.n2
@@ -46,7 +44,6 @@ class TestExample1(BaseTestCase):
         self.assertEqual(
             result, division_two_numbers(self.n1, self.n2)
         )
-
 
 
 if __name__ == "__main__":

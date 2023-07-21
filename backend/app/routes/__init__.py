@@ -1,18 +1,16 @@
 import logging
-from flask import Blueprint, current_app, jsonify, render_template, request
+from flask import Blueprint, jsonify, render_template, request
 from flask_cors import CORS
 from flask_jwt_extended import (
     create_access_token,
     jwt_required,
     JWTManager
 )
-from werkzeug.security import check_password_hash, generate_password_hash
 from app.messages import (
     ERR_500,
     ERR_DISABLED_ACC,
     ERR_EXISTING_USER,
     ERR_PROCESSING_REQ,
-    ERR_USER_NOT_FOUND,
     ERR_USER_NOT_FOUND,
     ERR_TASK_EMPTY,
     ERR_TASK_NOT_FOUND,
@@ -23,7 +21,7 @@ from app.messages import (
     SUC_TASK_DELETED,
     SUC_USER_UPDATED,
 )
-from app.models import db, User, Task
+from app.models import User, Task
 from app.schemas import TaskSchema, UserSchema, LoginSchema
 
 
@@ -36,7 +34,6 @@ task_schema = TaskSchema()
 tasks_schema = TaskSchema(many=True)
 user_schema = UserSchema()
 login_schema = LoginSchema()
-
 
 
 @main.route("/")
@@ -79,15 +76,14 @@ def login_user():
         try:
             args = login_schema.load(args_json)
         except Exception as e:
-            print (e)
+            print(e)
             raise e
         else:
             email = args["email"]
             password = args["password"]
             user = User.find_by_email(email)
-            
             if user is None or \
-               user.check_password(password) == False:
+               user.check_password(password) is False:
                 return jsonify(ERR_WRONG_USER_PASS), 400
 
             access_token = create_access_token(email)
@@ -154,12 +150,12 @@ def create_task():
     """Recibe parámetros para crear la tarea."""
     try:
         args_json = request.get_json()
-        print("primer var",args_json)
+        print("primer var", args_json)
 
         try:
             args = task_schema.load(args_json)
         except Exception as e:
-            print ("exep: ",e)
+            print("exep: ", e)
             raise e
         else:
             if not args["task"]:
@@ -207,7 +203,7 @@ def update_or_delete_task(id):
             task.update(**args_json)
             return jsonify(SUC_TASK_UPDATED), 200
         except Exception as e:
-            print (e)
+            print(e)
             raise e
 
     except Exception as e:

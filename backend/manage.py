@@ -1,8 +1,7 @@
 import click
-from werkzeug.security import generate_password_hash
 from flask.cli import FlaskGroup
 from app import create_app
-from app.models import db, User
+from app.models import User
 
 
 cli = FlaskGroup(create_app=create_app)

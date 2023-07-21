@@ -1,5 +1,8 @@
+import re
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from sqlalchemy import and_
+from sqlalchemy.orm import validates
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -51,14 +54,13 @@ class User(Base):
     is_disabled = db.Column(db.Boolean, default=False)
     task = db.relationship("Task", cascade="delete")
 
-    def serialize(self):
-        """ Return the user data """
-        return {
-            "id": self.id,
-            "username": self.username,
-            "email": self.email,
-            "is_disabled": self.is_disabled
-        }
+    def __repr__(self):
+        """ String representation  """
+        if self.id is not None:
+            return "<User '#{}: {}'>".format(
+                self.id, self.username)
+        return "<User 'NotSaved: {}'>".format(
+                    self.username)
 
     def set_password(self, password):
         """ Setting password for user """
@@ -67,6 +69,20 @@ class User(Base):
     def check_password(self, password):
         """ Checking password for user """
         return check_password_hash(self.password, password)
+
+    @validates("email")
+    def email_not_valid(self, key, value):
+        email_already_taken = User.query.filter(
+            and_(User.id != self.id, User.email == value)
+        ).count()
+        if email_already_taken > 0:
+            raise ValueError(
+                "El correo electrónico se encuentra tomado por otro usuario.")
+        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        if re.fullmatch(regex, value):
+            return value.lower()
+        raise ValueError(
+            "El correo electrónico no es válido.")
 
     @classmethod
     def find_by_email(cls, email):
@@ -98,7 +114,7 @@ class Task(Base):
             "user_id": self.user_id,
             "is_completed": self.is_completed
         }
-    
+
     def set_as_completed(self, completed=True):
         """ Set task as completed """
         self.is_completed = completed
@@ -107,4 +123,4 @@ class Task(Base):
     @staticmethod
     def find_all_by_user_id(user_id):
         """ Find user by email address """
-        return Task.query.filter_by(user_id=user_id).all() 
+        return Task.query.filter_by(user_id=user_id).all()

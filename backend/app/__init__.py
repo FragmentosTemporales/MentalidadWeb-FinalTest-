@@ -6,7 +6,6 @@ from app.routes import cors, jwt, main
 from app.schemas import ma
 
 
-
 def create_app(test_mode=False):
     """ Create flask application instance """
     app = Flask(__name__)
