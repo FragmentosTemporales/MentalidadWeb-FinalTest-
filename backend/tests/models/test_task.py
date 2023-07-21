@@ -45,6 +45,12 @@ class TestTaskModel(BaseTestCase):
         task.delete_from_db()
         deleted_task = Task.find_by_id(id)
         self.assertIsNone(deleted_task)
+    
+    def test_find_by_id_succes(self):
+        saved_task = save_task_to_db(self.data)
+        task = Task.find_by_id(saved_task.id)
+        self.assertIsInstance(task, Task)
+        self.assertEquals(task, saved_task)
 
     "filtrar id, tareas de usuario, borrar tareas, "
 
