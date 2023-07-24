@@ -17,6 +17,18 @@ class TestTaskEndpoint(BaseTestCase):
     def setUp(self):
         """ Setting up the test class """
         super().setUp()
+        self.data = {
+            "task": "titulo",
+            "description": "descripcion",
+            "is_completed": False,
+            "user_id": 1
+        }
+        self.data2 = {
+            "task": "titulo",
+            "description": "descripcion",
+            "is_completed": False,
+            "user_id": 2
+        }
         self.params = {
             "username": "test",
             "email": "example@example.com",
@@ -28,9 +40,24 @@ class TestTaskEndpoint(BaseTestCase):
 
     def test_task_created_suc(self):
         """ test task is created succesfully """
+        payload = json.dumps(self.data)
+        response = self.client.post(
+            "/tasks",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer {}".format(self.token)
+            },
+            data=payload
+        )
+        self.assertEqual(201, response.status_code)
+        self.assertEqual(response.json["message"],
+                         "Tarea guardada exitósamente")
+
+    def test_task_created_fail(self):
+        """ test task is not created """
         payload = json.dumps({
-            "task": "titulo",
-            "description": "descripcion",
+            "task": "",
+            "description": "",
             "is_completed": False,
             "user_id": 1
         })
@@ -42,10 +69,26 @@ class TestTaskEndpoint(BaseTestCase):
             },
             data=payload
         )
-        print("response", response)
-        # self.assertEqual(201, response.status_code)
-        # self.assertEqual(self.data.task,  )
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(response.json["error"], "El valor de Tarea no puede estar vacío")
 
+    def test_get_tasks_suc(self):
+        """ Test get tasks endpoint """
+        id = 1
+        save_task_to_db(self.data)
+        save_task_to_db(self.data)
+        save_task_to_db(self.data2)
+        response = self.client.get(
+            "/tasklist/{}".format(id),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer {}".format(self.token)
+            },
+        )
+        print("response", response.data)
+        self.assertEqual(200, response.status_code)
+
+        pass
 
 if __name__ == '__main__':
     unittest.main()
