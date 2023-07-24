@@ -3,6 +3,7 @@ from app.models import Task
 from tests import BaseTestCase
 from tests.utils.task import save_task_to_db
 
+
 class TestTaskModel(BaseTestCase):
     """ Test that task model is ok """
 
@@ -10,38 +11,37 @@ class TestTaskModel(BaseTestCase):
         """ Setting up the test class  """
         super().setUp()
         self.data = {
-            "task":"prueba",
-            "description":"prueba",
+            "task": "prueba",
+            "description": "prueba",
             "is_completed": False,
             "user_id": 1
         }
         self.data2 = {
-            "task":"prueba2",
-            "description":"prueba2",
+            "task": "prueba2",
+            "description": "prueba2",
             "is_completed": False,
             "user_id": 1
         }
         self.data3 = {
-            "task":"prueba3",
-            "description":"prueba3",
+            "task": "prueba3",
+            "description": "prueba3",
             "is_completed": False,
             "user_id": 2
         }
         self.params = {
-            "task":"prueba2",
-            "description":"prueba2",
+            "task": "prueba2",
+            "description": "prueba2",
             "is_completed": True,
             "user_id": 1
         }
-    
+
     def test_create_task(self):
         """ Test create task is success """
         task = save_task_to_db(self.data)
         self.assertIsNotNone(task.id)
         for key in self.data.keys():
             self.assertEqual(
-                getattr(task, key), self.data.get(key, None) 
-            )
+                getattr(task, key), self.data.get(key, None))
 
     def test_update_succes(self):
         """ Test update task is succes """
@@ -57,7 +57,7 @@ class TestTaskModel(BaseTestCase):
         task.delete_from_db()
         deleted_task = Task.find_by_id(id)
         self.assertIsNone(deleted_task)
-    
+
     def test_find_by_id_succes(self):
         saved_task = save_task_to_db(self.data)
         task = Task.find_by_id(saved_task.id)
