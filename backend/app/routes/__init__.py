@@ -150,7 +150,6 @@ def create_task():
     """Recibe parámetros para crear la tarea."""
     try:
         args_json = request.get_json()
-        print("primer var", args_json)
 
         try:
             args = task_schema.load(args_json)

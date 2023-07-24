@@ -85,10 +85,10 @@ class TestTaskEndpoint(BaseTestCase):
                 "Authorization": "Bearer {}".format(self.token)
             },
         )
-        print("response", response.data)
+        data = response.json
         self.assertEqual(200, response.status_code)
+        self.assertEqual(len(data),2)
 
-        pass
 
 if __name__ == '__main__':
     unittest.main()
