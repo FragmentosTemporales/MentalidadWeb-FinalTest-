@@ -20,6 +20,9 @@ class TestUserEndpoint(BaseTestCase):
             "password": "12345",
             "is_disabled": False
         }
+        self.data2 = {
+            "username": "test2",
+        }
 
     def test_create_user_endpoint_ok(self):
         """ Test creating new user is ok """
@@ -112,6 +115,61 @@ class TestUserEndpoint(BaseTestCase):
         )
         self.assertEqual(404, response.status_code)
         self.assertEqual(response.json["error"], "Usuario no encontrado")
+
+    def test_update_user_endpoint_ok(self):
+        """ Test update user ok """
+        user = save_user_to_db(self.data)
+        id = user.id
+        payload = json.dumps({
+            "email": "example@example.com",
+            "password": "12345"
+        })
+        response = self.client.post(
+            "/login",
+            headers={
+                "Content-Type": "application/json",
+            },
+            data=payload
+        )
+        data = json.loads(response.data)
+        token = data.get("token")
+        res = self.client.put(
+            "/userlist/" + str(id),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            data=json.dumps(self.data2)
+        )
+        self.assertEqual(200, res.status_code)
+        self.assertEqual(res.json["message"], "Usuario actualizado")
+
+    def test_disable_user_endpoint_ok(self):
+        """ Test disabled user ok """
+        user = save_user_to_db(self.data)
+        id = user.id
+        payload = json.dumps({
+            "email": "example@example.com",
+            "password": "12345"
+        })
+        response = self.client.post(
+            "/login",
+            headers={
+                "Content-Type": "application/json",
+            },
+            data=payload
+        )
+        data = json.loads(response.data)
+        token = data.get("token")
+        res = self.client.delete(
+            "/userlist/" + str(id),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+        )
+        self.assertEqual(204, res.status_code)
+        self.assertEqual(res.data, b"")
 
 
 if __name__ == '__main__':
