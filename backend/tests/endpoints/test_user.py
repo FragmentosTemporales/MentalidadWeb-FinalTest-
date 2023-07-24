@@ -78,7 +78,6 @@ class TestUserEndpoint(BaseTestCase):
             },
             data=payload
         )
-        print(response.json)
         self.assertEqual(200, response.status_code)
 
     def test_login_user_endpoint_fail(self):
@@ -94,7 +93,6 @@ class TestUserEndpoint(BaseTestCase):
             },
             data=payload
         )
-        #print(response.data)
         self.assertEqual(400, response.status_code)
         self.assertEqual(response.json["error"],"El usuario o la contraseña son incorrectos")
 
@@ -165,7 +163,6 @@ class TestUserEndpoint(BaseTestCase):
                 "Authorization": "Bearer " + token
             },
         )
-        print(res.data)
         self.assertEqual(404, res.status_code)
         self.assertEqual(res.json["error"], "Usuario no encontrado")
 
