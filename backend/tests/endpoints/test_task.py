@@ -13,7 +13,7 @@ tasks_schema = TaskSchema(many=True)
 class TestTaskEndpoint(BaseTestCase):
     """ Test that task endpoint works fine! """
 
-    def seUp(self):
+    def setUp(self):
         """ Setting up the test class """
         super().setUp()
         self.data = {
@@ -34,9 +34,9 @@ class TestTaskEndpoint(BaseTestCase):
     def test_task_created_suc(self):
         """ test task is created succesfully """
         payload = json.dumps({
-            "task": self.data.get("task"),
-            "description": self.data.get("description"),
-            "user_id": self.data.get("user_id")
+            "task": "prueba",
+            "description": "descripcion",
+            "user_id": 1
         })
         response = self.client.post(
             "/tasks",

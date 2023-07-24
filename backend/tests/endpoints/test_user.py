@@ -109,7 +109,7 @@ class TestUserEndpoint(BaseTestCase):
         user = self.data
         id = 9999
         response = self.client.get(
-            "/user/" + str(id),
+            "/user/{}".format(id)
         )
         self.assertEqual(404, response.status_code)
         self.assertEqual(response.json["error"], "Usuario no encontrado")
@@ -118,7 +118,7 @@ class TestUserEndpoint(BaseTestCase):
         """ Test update user ok """
         id = self.user.id
         res = self.client.put(
-            "/userlist/" + str(id),
+            "/userlist/{}".format(id),
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer {}".format(self.token)
@@ -132,7 +132,7 @@ class TestUserEndpoint(BaseTestCase):
         """ Test disabled user ok """
         id = self.user.id
         res = self.client.delete(
-            "/userlist/" + str(id),
+            "/userlist/{}".format(id),
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer {}".format(self.token)
@@ -154,13 +154,13 @@ class TestUserEndpoint(BaseTestCase):
             },
             data=payload
         )
-        data = json.loads(response.data)
-        token = data.get("token")
+        json.loads(response.data)
+        id = 9999
         res = self.client.delete(
-            "/userlist/9999",
+            "/userlist/{}".format(id),
             headers={
                 "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
+                "Authorization": "Bearer {}".format(self.token)
             },
         )
         self.assertEqual(404, res.status_code)
