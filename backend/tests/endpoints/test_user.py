@@ -1,5 +1,6 @@
 import json
 import unittest
+from flask_jwt_extended import create_access_token 
 from app.models import User
 from app.schemas import UserSchema
 from tests import BaseTestCase
@@ -24,6 +25,9 @@ class TestUserEndpoint(BaseTestCase):
             "username": "test2",
         }
 
+        self.user = save_user_to_db(self.data)
+        self.token = create_access_token(self.user.email)
+
     def test_create_user_endpoint_ok(self):
         """ Test creating new user is ok """
         payload = json.dumps({
@@ -46,12 +50,10 @@ class TestUserEndpoint(BaseTestCase):
 
     def test_create_user_endpoint_fail(self):
         """ Test creating new user fail"""
-        save_user_to_db(self.data)
         payload = json.dumps({
-            "username": "test",
-            "email": "example@example.com",
-            "password": "12345",
-            "is_disabled": False
+            "username": self.data.get("username"),
+            "email": self.data.get("email"),
+            "password": self.data.get("password"),
         })
         response = self.client.post(
             "/register",
@@ -65,10 +67,9 @@ class TestUserEndpoint(BaseTestCase):
 
     def test_login_user_endpoint_ok(self):
         """ Test login user is ok """
-        save_user_to_db(self.data)
         payload = json.dumps({
-            "email": "example@example.com",
-            "password": "12345"
+            "email": self.data.get("email"),
+            "password": self.data.get("password")
         })
         response = self.client.post(
             "/login",
@@ -77,13 +78,13 @@ class TestUserEndpoint(BaseTestCase):
             },
             data=payload
         )
+        print(response.json)
         self.assertEqual(200, response.status_code)
 
     def test_login_user_endpoint_fail(self):
         """ Test login user fail """
-        save_user_to_db(self.data)
         payload = json.dumps({
-            "email": "example@example.com",
+            "email": self.data.get("email"),
             "password": "estanoes"
         })
         response = self.client.post(
@@ -99,10 +100,9 @@ class TestUserEndpoint(BaseTestCase):
 
     def test_get_user_endpoint_ok(self):
         """ Test get user is ok """
-        user = save_user_to_db(self.data)
-        id = user.id
+        id = self.user.id
         response = self.client.get(
-            "/user/" + str(id),
+            "/user/{}".format(id)
         )
         self.assertEqual(200, response.status_code)
 
@@ -118,26 +118,12 @@ class TestUserEndpoint(BaseTestCase):
 
     def test_update_user_endpoint_ok(self):
         """ Test update user ok """
-        user = save_user_to_db(self.data)
-        id = user.id
-        payload = json.dumps({
-            "email": "example@example.com",
-            "password": "12345"
-        })
-        response = self.client.post(
-            "/login",
-            headers={
-                "Content-Type": "application/json",
-            },
-            data=payload
-        )
-        data = json.loads(response.data)
-        token = data.get("token")
+        id = self.user.id
         res = self.client.put(
             "/userlist/" + str(id),
             headers={
                 "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
+                "Authorization": "Bearer {}".format(self.token)
             },
             data=json.dumps(self.data2)
         )
@@ -146,26 +132,12 @@ class TestUserEndpoint(BaseTestCase):
 
     def test_disable_user_endpoint_ok(self):
         """ Test disabled user ok """
-        user = save_user_to_db(self.data)
-        id = user.id
-        payload = json.dumps({
-            "email": "example@example.com",
-            "password": "12345"
-        })
-        response = self.client.post(
-            "/login",
-            headers={
-                "Content-Type": "application/json",
-            },
-            data=payload
-        )
-        data = json.loads(response.data)
-        token = data.get("token")
+        id = self.user.id
         res = self.client.delete(
             "/userlist/" + str(id),
             headers={
                 "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
+                "Authorization": "Bearer {}".format(self.token)
             },
         )
         self.assertEqual(204, res.status_code)
@@ -173,8 +145,6 @@ class TestUserEndpoint(BaseTestCase):
 
     def test_disable_user_endpoint_fail(self):
         """ Test disabled user fail """
-        user = save_user_to_db(self.data)
-        id = user.id
         payload = json.dumps({
             "email": "example@example.com",
             "password": "12345"
