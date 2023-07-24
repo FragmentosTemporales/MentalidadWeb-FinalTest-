@@ -171,6 +171,34 @@ class TestUserEndpoint(BaseTestCase):
         self.assertEqual(204, res.status_code)
         self.assertEqual(res.data, b"")
 
+    def test_disable_user_endpoint_fail(self):
+        """ Test disabled user fail """
+        user = save_user_to_db(self.data)
+        id = user.id
+        payload = json.dumps({
+            "email": "example@example.com",
+            "password": "12345"
+        })
+        response = self.client.post(
+            "/login",
+            headers={
+                "Content-Type": "application/json",
+            },
+            data=payload
+        )
+        data = json.loads(response.data)
+        token = data.get("token")
+        res = self.client.delete(
+            "/userlist/9999",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+        )
+        print(res.data)
+        self.assertEqual(404, res.status_code)
+        self.assertEqual(res.json["error"], "Usuario no encontrado")
+
 
 if __name__ == '__main__':
     unittest.main()
