@@ -61,6 +61,19 @@ class User(Base):
                 "El nombre del usuario es un campo requerido.")
         return value
 
+    @validates("email")
+    def email_not_valid(self, key, value):
+        email_already_taken = User.query.filter(
+            and_(User.id != self.id, User.email == value)
+        ).count()
+        if email_already_taken > 0:
+            raise ValueError(
+                "El correo electrónico se encuentra tomado por otro usuario.")
+        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        if re.fullmatch(regex, value):
+            return value.lower()
+        raise ValueError(
+            "El correo electrónico no es válido.")
 
     def __repr__(self):
         """ String representation  """
@@ -77,20 +90,6 @@ class User(Base):
     def check_password(self, password):
         """ Checking password for user """
         return check_password_hash(self.password, password)
-
-    @validates("email")
-    def email_not_valid(self, key, value):
-        email_already_taken = User.query.filter(
-            and_(User.id != self.id, User.email == value)
-        ).count()
-        if email_already_taken > 0:
-            raise ValueError(
-                "El correo electrónico se encuentra tomado por otro usuario.")
-        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-        if re.fullmatch(regex, value):
-            return value.lower()
-        raise ValueError(
-            "El correo electrónico no es válido.")
 
     @classmethod
     def find_by_email(cls, email):
