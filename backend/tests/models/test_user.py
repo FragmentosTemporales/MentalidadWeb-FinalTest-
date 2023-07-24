@@ -22,6 +22,12 @@ class TestUserModel(BaseTestCase):
             "password": "12345",
             "is_disabled": False
         }
+        self.data3 = {
+            "username": "Testing",
+            "email": "example2@example.com",
+            "password": "12345",
+            "is_disabled": False
+        }
         self.data_email_upper = {
             "username": "test",
             "email": "EMAIL@EXAMPLE.COM",

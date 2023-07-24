@@ -11,20 +11,32 @@ class TestTaskModel(BaseTestCase):
         """ Setting up the test class  """
         super().setUp()
         self.data = {
-            "task": "prueba",
-            "description": "prueba",
+            "task": "data",
+            "description": "data",
             "is_completed": False,
             "user_id": 1
         }
         self.data2 = {
-            "task": "prueba2",
-            "description": "prueba2",
+            "task": "data 2",
+            "description": "data 2",
             "is_completed": False,
             "user_id": 1
         }
         self.data3 = {
-            "task": "prueba3",
-            "description": "prueba3",
+            "task": "data 3",
+            "description": "data 3",
+            "is_completed": False,
+            "user_id": 2
+        }
+        self.data4 = {
+            "task": "",
+            "description": "data 4",
+            "is_completed": False,
+            "user_id": 2
+        }
+        self.data5 = {
+            "task": "data 5",
+            "description": "",
             "is_completed": False,
             "user_id": 2
         }
@@ -75,6 +87,33 @@ class TestTaskModel(BaseTestCase):
         task_list = Task.find_all_by_user_id(user)
         self.assertEquals(len(task_list), 2)
 
+    def test_string_representation(self):
+        """ Test string representation of task model """
+        task = Task(**self.data)
+        self.assertEqual(str(task), "<Task 'NotSaved: {}'>".format(
+            task.task))
+        task.save_to_db()
+        self.assertEqual(str(task), "<Task '#{}: {}'>".format(
+            task.id, task.task))
+
+    def test_task_fails_because_title_not_found(self):
+        """ Test task create fails because title is not found """
+        task = self.data4
+        with self.assertRaises(ValueError) as context:
+            save_task_to_db(task)
+        self.assertTrue(
+            "El título de la tarea es un campo requerido."
+            in str(context.exception))
+
+    def test_task_fails_because_description_not_found(self):
+        """ Test task create fails because description is not found """
+        task = self.data5
+        with self.assertRaises(ValueError) as context:
+            save_task_to_db(task)
+        self.assertTrue(
+            "La descripción de la tarea es un campo requerido."
+            in str(context.exception))
+        
 
 if __name__ == "__main__":
     unittest.main()

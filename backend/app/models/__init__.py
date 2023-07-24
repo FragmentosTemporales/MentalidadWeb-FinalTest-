@@ -54,6 +54,14 @@ class User(Base):
     is_disabled = db.Column(db.Boolean, default=False)
     task = db.relationship("Task", cascade="delete")
 
+    @validates("username")
+    def username_required(self, key, value):
+        if value == "" or value is None:
+            raise ValueError(
+                "El nombre del usuario es un campo requerido.")
+        return value
+
+
     def __repr__(self):
         """ String representation  """
         if self.id is not None:
@@ -104,6 +112,28 @@ class Task(Base):
     description = db.Column(db.String(500), nullable=True)
     is_completed = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    @validates("task")
+    def task_required(self, key, value):
+        if value == "" or value is None:
+            raise ValueError(
+                "El título de la tarea es un campo requerido.")
+        return value
+
+    @validates("description")
+    def description_required(self, key, value):
+        if value == "" or value is None:
+            raise ValueError(
+                "La descripción de la tarea es un campo requerido.")
+        return value
+
+    def __repr__(self):
+        """ String representation  """
+        if self.id is not None:
+            return "<Task '#{}: {}'>".format(
+                self.id, self.task)
+        return "<Task 'NotSaved: {}'>".format(
+                    self.task)
 
     def set_as_completed(self, completed=True):
         """ Set task as completed """
