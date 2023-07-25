@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, render_template, request
 from flask_cors import CORS
 from flask_jwt_extended import (
     create_access_token,
+    get_jwt_identity,
     jwt_required,
     JWTManager
 )
@@ -172,12 +173,22 @@ def create_task():
 def get_tasks(user_id):
     """Retorna lista de tareas del usuario encontrado por el ID"""
     try:
-        tasks = Task.find_all_by_user_id(user_id)
-        if tasks:
-            return jsonify(tasks_schema.dump(tasks)), 200
+        email = get_jwt_identity()
+        user = User.find_by_email(email)
+        if user.id == user_id:
+            try:
+                tasks = Task.find_all_by_user_id(user_id)
+                if tasks:
+                    return jsonify(tasks_schema.dump(tasks)), 200
 
-        return jsonify(ERR_USER_NOT_FOUND), 404
+                return jsonify(ERR_USER_NOT_FOUND), 404
 
+            except Exception as e:
+                error_message = str(e)
+                logging.error(f"Error en get_tasks: {error_message}")
+                return jsonify(ERR_500), 500
+        else:
+            return jsonify(ERR_USER_NOT_FOUND), 404
     except Exception as e:
         error_message = str(e)
         logging.error(f"Error en get_tasks: {error_message}")
@@ -188,23 +199,29 @@ def get_tasks(user_id):
 @jwt_required()
 def update_or_delete_task(id):
     """Recibe parámetros de la tarea a modificar o eliminar"""
+    
     try:
+        email = get_jwt_identity()
+        user = User.find_by_email(email)
         task = Task.find_by_id(id)
-        if task is None:
+        print("user", user.id, "task", task.user_id)
+        if user.id == task.user_id:
+            if task is None:
+                return jsonify(ERR_TASK_NOT_FOUND), 404
+
+            if request.method == "DELETE":
+                task.delete_from_db()
+                return jsonify(SUC_TASK_DELETED), 204
+
+            args_json = request.get_json()
+            try:
+                task.update(**args_json)
+                return jsonify(SUC_TASK_UPDATED), 200
+            except Exception as e:
+                print(e)
+                raise e
+        else:
             return jsonify(ERR_TASK_NOT_FOUND), 404
-
-        if request.method == "DELETE":
-            task.delete_from_db()
-            return jsonify(SUC_TASK_DELETED), 204
-
-        args_json = request.get_json()
-        try:
-            task.update(**args_json)
-            return jsonify(SUC_TASK_UPDATED), 200
-        except Exception as e:
-            print(e)
-            raise e
-
     except Exception as e:
         error_message = str(e)
         logging.error(f"Error en update_or_delete_task: {error_message}")

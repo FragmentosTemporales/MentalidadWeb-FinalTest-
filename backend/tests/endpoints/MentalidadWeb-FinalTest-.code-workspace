@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"path": "../../../../cdp-unab"
+		},
+		{
+			"path": "../../../../MentalidadWeb-Todo"
+		}
+	],
+	"settings": {
+		"[python]": {
+			"editor.defaultFormatter": "ms-python.autopep8"
+		},
+		"python.formatting.provider": "none"
+	}
+}

@@ -17,18 +17,6 @@ class TestTaskEndpoint(BaseTestCase):
     def setUp(self):
         """ Setting up the test class """
         super().setUp()
-        self.data = {
-            "task": "titulo",
-            "description": "descripcion",
-            "is_completed": False,
-            "user_id": 1
-        }
-        self.data2 = {
-            "task": "titulo",
-            "description": "descripcion",
-            "is_completed": False,
-            "user_id": 2
-        }
         self.params = {
             "username": "test",
             "email": "example@example.com",
@@ -36,6 +24,24 @@ class TestTaskEndpoint(BaseTestCase):
             "is_disabled": False
         }
         self.user = save_user_to_db(self.params)
+        self.update = {
+            "task": "titulo update",
+            "description": "descripcion update",
+            "is_completed": False,
+            "user_id": self.user.id
+        }
+        self.data = {
+            "task": "titulo",
+            "description": "descripcion",
+            "is_completed": False,
+            "user_id": self.user.id
+        }
+        self.data2 = {
+            "task": "titulo",
+            "description": "descripcion",
+            "is_completed": False,
+            "user_id": 2
+        }
         self.token = create_access_token(self.user.email)
 
     def test_task_created_suc(self):
@@ -70,18 +76,16 @@ class TestTaskEndpoint(BaseTestCase):
             data=payload
         )
         self.assertEqual(400, response.status_code)
-        self.assertEqual(response.json["error"], "El valor de Tarea no puede estar vacío")
+        self.assertEqual(response.json["error"],
+                         "El valor de Tarea no puede estar vacío")
 
     def test_get_tasks_suc(self):
         """ Test get tasks endpoint """
-        id = 2
         save_task_to_db(self.data)
         save_task_to_db(self.data)
         save_task_to_db(self.data2)
-        user2 = User.find_by_id(2)
-        print(user2)
         response = self.client.get(
-            "/tasklist/{}".format(id),
+            "/tasklist/{}".format(self.user.id),
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer {}".format(self.token)
@@ -89,7 +93,56 @@ class TestTaskEndpoint(BaseTestCase):
         )
         data = response.json
         self.assertEqual(200, response.status_code)
-        self.assertEqual(len(data),2)
+        self.assertEqual(len(data), 2)
+
+    def test_get_tasks_fail(self):
+        """ Test get tasks endpoint """
+        save_task_to_db(self.data)
+        save_task_to_db(self.data)
+        save_task_to_db(self.data2)
+        response = self.client.get(
+            "/tasklist/{}".format(99999),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer {}".format(self.token)
+            },
+        )
+        self.assertEqual(404, response.status_code)
+        self.assertEqual(response.json["error"], "Usuario no encontrado")
+
+    def test_update_task_suc(self):
+        """ Test endopoint update task ok"""
+        task = save_task_to_db(self.data)
+        response = self.client.put(
+            "/task/{}".format(task.id),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer {}".format(self.token)
+            },
+            data=json.dumps(self.update)
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(response.json["message"],
+                        "Tarea modificada con éxito.")
+
+    def test_update_task_suc(self):
+        """ Test endopoint update task ok"""
+        task = save_task_to_db(self.data)
+        response = self.client.put(
+            "/task/{}".format(999),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer {}".format(self.token)
+            },
+            data=json.dumps({
+                "task": "titulo update",
+                "description": "descripcion update",
+                "is_completed": False,
+                "user_id": 999
+            })
+        )
+        self.assertEqual(404, response.status_code)
+        self.assertEqual(response.json["error"], "Tarea no encontrada.")
 
 
 if __name__ == '__main__':
