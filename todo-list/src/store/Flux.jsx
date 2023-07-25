@@ -67,7 +67,7 @@ const getState = ({ setStore, getActions, getStore }) => {
       setUsername: (data, navigate) => {
         const { user_id, token } = getStore();
         const url = "http://localhost:8585/userlist/";
-        const urlToFetch = url+user_id;
+        const urlToFetch = url + user_id;
         fetch(urlToFetch, {
           headers: {
             "Content-Type": "application/json",
@@ -89,25 +89,25 @@ const getState = ({ setStore, getActions, getStore }) => {
           });
       },
       getUser: (navigate) => {
-        const {user_id, token} = getStore()
+        const { user_id, token } = getStore()
         const url = "http://localhost:8585/user/";
-        const urlToFetch = url+user_id
-        fetch(urlToFetch,{
+        const urlToFetch = url + user_id
+        fetch(urlToFetch, {
           headers: {
             "Content-Type": "application/json",
             Authorization: "Bearer " + token,
           },
         })
-        .then((res)=>res.json())
-        .then((res)=>{
-          setStore({
-            username: res.username
+          .then((res) => res.json())
+          .then((res) => {
+            setStore({
+              username: res.username
+            })
+            navigate("/")
           })
-          navigate("/")
-        })
-        .catch((error)=>{
-          console.log(error)
-        })
+          .catch((error) => {
+            console.log(error)
+          })
       },
       disabledUser: () => {
         const { user_id, token } = getStore();
@@ -120,14 +120,14 @@ const getState = ({ setStore, getActions, getStore }) => {
           },
           method: "DELETE",
         })
-        .then((res) => {
-          if (res.ok) {
-            toast.success("User disabled successfully.");
-            getActions().logout();
-          } else {
-            toast.error("Server error!");
-          }
-        })
+          .then((res) => {
+            if (res.ok) {
+              toast.success("User disabled successfully.");
+              getActions().logout();
+            } else {
+              toast.error("Server error!");
+            }
+          })
       },
       logout: () => {
         setStore({
@@ -150,14 +150,20 @@ const getState = ({ setStore, getActions, getStore }) => {
             Authorization: "Bearer " + token,
           },
         })
-          .then((res) => res.json())
+          .then((res) => {
+            if (!res.ok) throw Error(res.status);
+            return res.json()
+          })
           .then((res) => {
             setStore({
               tasks: res,
             });
           })
           .catch((error) => {
-            console.log(error);
+            console.log(error)
+            setStore({
+              tasks: [],
+            })
           });
       },
       newTask: ({ task, description }) => {

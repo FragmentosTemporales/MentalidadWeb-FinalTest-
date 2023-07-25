@@ -1,7 +1,7 @@
 import json
 import unittest
 from flask_jwt_extended import create_access_token
-from app.models import Task
+from app.models import Task, User
 from app.schemas import TaskSchema
 from tests import BaseTestCase
 from tests.utils.task import save_task_to_db
@@ -74,10 +74,12 @@ class TestTaskEndpoint(BaseTestCase):
 
     def test_get_tasks_suc(self):
         """ Test get tasks endpoint """
-        id = 1
+        id = 2
         save_task_to_db(self.data)
         save_task_to_db(self.data)
         save_task_to_db(self.data2)
+        user2 = User.find_by_id(2)
+        print(user2)
         response = self.client.get(
             "/tasklist/{}".format(id),
             headers={

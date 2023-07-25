@@ -83,7 +83,7 @@ def login_user():
             password = args["password"]
             user = User.find_by_email(email)
             if user is None or \
-               user.check_password(password) is False:
+                user.check_password(password) is False:
                 return jsonify(ERR_WRONG_USER_PASS), 400
 
             access_token = create_access_token(email)
