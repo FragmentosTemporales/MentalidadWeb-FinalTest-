@@ -5,7 +5,6 @@ from app.schemas import TaskSchema
 from app.messages import (
     ERR_TASK_EMPTY,
     ERR_TASK_NOT_FOUND,
-    ERR_USER_NOT_FOUND,
     SUC_TASK_OK,
     SUC_TASK_UPDATED,
 )
@@ -97,7 +96,7 @@ class TestTaskEndpoint(BaseTestCase):
         save_task_to_db(self.data)
         save_task_to_db(self.data2)
         response = self.client.get(
-            "/tasklist/{}".format(self.user.id),
+            "/tasklist",
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer {}".format(self.token)
@@ -107,20 +106,20 @@ class TestTaskEndpoint(BaseTestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(len(data), 2)
 
+    # TODO = revisar este caso
     def test_get_tasks_fail(self):
         """ Test get tasks endpoint """
         save_task_to_db(self.data)
         save_task_to_db(self.data)
         save_task_to_db(self.data2)
         response = self.client.get(
-            "/tasklist/{}".format(99999),
+            "/tasklist",
             headers={
                 "Content-Type": "application/json",
-                "Authorization": "Bearer {}".format(self.token)
+                "Authorization": "Bearer "
             },
         )
-        self.assertEqual(404, response.status_code)
-        self.assertEqual(response.json, ERR_USER_NOT_FOUND)
+        self.assertEqual(422, response.status_code)
 
     def test_update_task_suc(self):
         """ Test endopoint update task ok"""

@@ -141,10 +141,8 @@ const getState = ({ setStore, getActions, getStore }) => {
       },
       fetchTasks: () => {
         const { token } = getStore();
-        const url = "http://localhost:8585/tasklist/";
-        const { user_id } = getStore();
-        const urlToFetch = url + user_id;
-        fetch(urlToFetch, {
+        const url = "http://localhost:8585/tasklist";
+        fetch(url, {
           headers: {
             "Content-Type": "application/json",
             Authorization: "Bearer " + token,

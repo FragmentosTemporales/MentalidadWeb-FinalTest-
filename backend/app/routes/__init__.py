@@ -168,17 +168,17 @@ def create_task():
         return jsonify(ERR_500), 500
 
 
-@main.route("/tasklist/<int:user_id>", methods=["GET"])
+@main.route("/tasklist", methods=["GET"])
 @jwt_required()
-def get_tasks(user_id):
+def get_tasks():
     """ Function to get tasklist by user id """
     try:
         email = get_jwt_identity()
         user = User.find_by_email(email)
-        if user == None:
+        if user is None:
             return jsonify(ERR_USER_NOT_FOUND), 404
         try:
-            tasks = Task.find_all_by_user_id(user_id)
+            tasks = Task.find_all_by_user_id(user.id)
             if tasks:
                 return jsonify(tasks_schema.dump(tasks)), 200
 
@@ -187,7 +187,7 @@ def get_tasks(user_id):
         except Exception as e:
             error_message = str(e)
             logging.error(f"Error en get_tasks: {error_message}")
-            return jsonify(ERR_500), 500           
+            return jsonify(ERR_500), 500
     except Exception as e:
         error_message = str(e)
         logging.error(f"Error en get_tasks: {error_message}")
@@ -216,7 +216,7 @@ def update_or_delete_task(id):
         except Exception as e:
             print(e)
             raise e
-            
+
     except Exception as e:
         error_message = str(e)
         logging.error(f"Error en update_or_delete_task: {error_message}")
