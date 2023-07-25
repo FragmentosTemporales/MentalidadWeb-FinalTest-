@@ -84,7 +84,7 @@ def login_user():
             password = args["password"]
             user = User.find_by_email(email)
             if user is None or \
-                user.check_password(password) is False:
+               user.check_password(password) is False:
                 return jsonify(ERR_WRONG_USER_PASS), 400
 
             access_token = create_access_token(email)
@@ -175,20 +175,19 @@ def get_tasks(user_id):
     try:
         email = get_jwt_identity()
         user = User.find_by_email(email)
-        if user.id == user_id:
-            try:
-                tasks = Task.find_all_by_user_id(user_id)
-                if tasks:
-                    return jsonify(tasks_schema.dump(tasks)), 200
-
-                return jsonify(ERR_USER_NOT_FOUND), 404
-
-            except Exception as e:
-                error_message = str(e)
-                logging.error(f"Error en get_tasks: {error_message}")
-                return jsonify(ERR_500), 500
-        else:
+        if user == None:
             return jsonify(ERR_USER_NOT_FOUND), 404
+        try:
+            tasks = Task.find_all_by_user_id(user_id)
+            if tasks:
+                return jsonify(tasks_schema.dump(tasks)), 200
+
+            return jsonify(ERR_USER_NOT_FOUND), 404
+
+        except Exception as e:
+            error_message = str(e)
+            logging.error(f"Error en get_tasks: {error_message}")
+            return jsonify(ERR_500), 500           
     except Exception as e:
         error_message = str(e)
         logging.error(f"Error en get_tasks: {error_message}")
@@ -199,29 +198,25 @@ def get_tasks(user_id):
 @jwt_required()
 def update_or_delete_task(id):
     """ Function to delete or update task by id """
-    
     try:
         email = get_jwt_identity()
         user = User.find_by_email(email)
         task = Task.find_by_id(id)
-        print("user", user.id, "task", task.user_id)
-        if user.id == task.user_id:
-            if task is None:
-                return jsonify(ERR_TASK_NOT_FOUND), 404
-
-            if request.method == "DELETE":
-                task.delete_from_db()
-                return jsonify(SUC_TASK_DELETED), 204
-
-            args_json = request.get_json()
-            try:
-                task.update(**args_json)
-                return jsonify(SUC_TASK_UPDATED), 200
-            except Exception as e:
-                print(e)
-                raise e
-        else:
+        if task is None:
             return jsonify(ERR_TASK_NOT_FOUND), 404
+        if user.id != task.user_id:
+            return jsonify(ERR_TASK_NOT_FOUND), 404
+        if request.method == "DELETE":
+            task.delete_from_db()
+            return jsonify(SUC_TASK_DELETED), 204
+        args_json = request.get_json()
+        try:
+            task.update(**args_json)
+            return jsonify(SUC_TASK_UPDATED), 200
+        except Exception as e:
+            print(e)
+            raise e
+            
     except Exception as e:
         error_message = str(e)
         logging.error(f"Error en update_or_delete_task: {error_message}")

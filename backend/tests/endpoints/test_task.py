@@ -1,7 +1,6 @@
 import json
 import unittest
 from flask_jwt_extended import create_access_token
-from app.models import Task, User
 from app.schemas import TaskSchema
 from app.messages import (
     ERR_TASK_EMPTY,
@@ -175,6 +174,7 @@ class TestTaskEndpoint(BaseTestCase):
         )
         self.assertEqual(404, response.status_code)
         self.assertEqual(response.json, ERR_TASK_NOT_FOUND)
+
 
 if __name__ == '__main__':
     unittest.main()

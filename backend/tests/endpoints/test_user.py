@@ -1,9 +1,8 @@
 import json
 import unittest
-from flask_jwt_extended import create_access_token 
+from flask_jwt_extended import create_access_token
 from app.models import User
 from app.messages import (
-    ERR_TASK_EMPTY,
     ERR_EXISTING_USER,
     ERR_USER_NOT_FOUND,
     ERR_WRONG_USER_PASS,
@@ -17,6 +16,7 @@ from tests.utils.user import save_user_to_db
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
+
 
 class TestUserEndpoint(BaseTestCase):
     """ Test that users endpoints works fine """
@@ -114,7 +114,6 @@ class TestUserEndpoint(BaseTestCase):
 
     def test_get_user_endpoint_fail(self):
         """ Test get user fail """
-        user = self.data
         id = 9999
         response = self.client.get(
             "/user/{}".format(id)

@@ -113,7 +113,7 @@ class TestTaskModel(BaseTestCase):
         self.assertTrue(
             "La descripción de la tarea es un campo requerido."
             in str(context.exception))
-        
+
 
 if __name__ == "__main__":
     unittest.main()
