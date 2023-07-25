@@ -133,10 +133,9 @@ class TestTaskEndpoint(BaseTestCase):
         self.assertEqual(response.json["message"],
                         "Tarea modificada con éxito.")
 
-    def test_update_task_suc(self):
-        """ Test endopoint update task ok"""
+    def test_update_task_fail(self):
+        """ Test endopoint update task fail"""
         task = save_task_to_db(self.data)
-        print(task)
         response = self.client.put(
             "/task/{}".format(task.id),
             headers={
@@ -144,6 +143,31 @@ class TestTaskEndpoint(BaseTestCase):
                 "Authorization": "Bearer {}".format(self.token2)
             },
             data=json.dumps(self.update)
+        )
+        self.assertEqual(404, response.status_code)
+        self.assertEqual(response.json["error"], "Tarea no encontrada")
+
+    def test_delete_task_suc(self):
+        """ Test endopoint delete task ok"""
+        task = save_task_to_db(self.data)
+        response = self.client.delete(
+            "/task/{}".format(task.id),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer {}".format(self.token)
+            }
+        )
+        self.assertEqual(204, response.status_code)
+
+    def test_delete_task_fail(self):
+        """ Test endopoint delete task fail"""
+        task = save_task_to_db(self.data)
+        response = self.client.delete(
+            "/task/{}".format(task.id),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer {}".format(self.token2)
+            }
         )
         self.assertEqual(404, response.status_code)
         self.assertEqual(response.json["error"], "Tarea no encontrada")
