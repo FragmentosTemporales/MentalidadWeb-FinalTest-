@@ -16,6 +16,18 @@ class TestUserModel(BaseTestCase):
             "password": "12345",
             "is_disabled": False
         }
+        self.data2 = {
+            "username": "Testing",
+            "email": "example2@example.com",
+            "password": "12345",
+            "is_disabled": False
+        }
+        self.data3 = {
+            "username": "Testing",
+            "email": "example2@example.com",
+            "password": "12345",
+            "is_disabled": False
+        }
         self.data_email_upper = {
             "username": "test",
             "email": "EMAIL@EXAMPLE.COM",
@@ -49,10 +61,16 @@ class TestUserModel(BaseTestCase):
                     getattr(user, key), self.data.get(key, None))
         self.assertTrue(user.check_password(self.data.get("password", None)))
 
-    # TODO: Revisar este caso.
-    def test_create_fails_because_email_already_taken(self):
+    def test_create_user_fails_because_email_already_taken(self):
         """ Test create user fails because email already taken """
-        pass
+        save_user_to_db(self.data)
+        with self.assertRaises(ValueError) as context:
+            user = User(**self.data)
+            user.save_to_db()
+        self.assertTrue(
+            "El correo electrónico se encuentra tomado por otro usuario."
+            in str(context.exception)
+        )
 
     def test_email_normalized(self):
         """ Test user email is normalized after save into db """
@@ -68,10 +86,15 @@ class TestUserModel(BaseTestCase):
         for key in self.params.keys():
             self.assertEqual(getattr(user, key), self.params[key])
 
-    # TODO: Revisar este caso.
-    def test_update_fails_because_email_duplicated(self):
+    def test_update_user_fails_because_email_duplicated(self):
         """ Test user update fails because already exists in db """
-        pass
+        save_user_to_db(self.data)
+        new_user = save_user_to_db(self.data2)
+        with self.assertRaises(ValueError) as context:
+            new_user.update(**self.data)
+        self.assertTrue(
+            "El correo electrónico se encuentra tomado por otro usuario."
+            in str(context.exception))
 
     def test_find_by_id_success(self):
         """ Test finding user by id is success """

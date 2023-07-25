@@ -54,6 +54,27 @@ class User(Base):
     is_disabled = db.Column(db.Boolean, default=False)
     task = db.relationship("Task", cascade="delete")
 
+    @validates("username")
+    def username_required(self, key, value):
+        if value == "" or value is None:
+            raise ValueError(
+                "El nombre del usuario es un campo requerido.")
+        return value
+
+    @validates("email")
+    def email_not_valid(self, key, value):
+        email_already_taken = User.query.filter(
+            and_(User.id != self.id, User.email == value)
+        ).count()
+        if email_already_taken > 0:
+            raise ValueError(
+                "El correo electrónico se encuentra tomado por otro usuario.")
+        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        if re.fullmatch(regex, value):
+            return value.lower()
+        raise ValueError(
+            "El correo electrónico no es válido.")
+
     def __repr__(self):
         """ String representation  """
         if self.id is not None:
@@ -69,20 +90,6 @@ class User(Base):
     def check_password(self, password):
         """ Checking password for user """
         return check_password_hash(self.password, password)
-
-    @validates("email")
-    def email_not_valid(self, key, value):
-        email_already_taken = User.query.filter(
-            and_(User.id != self.id, User.email == value)
-        ).count()
-        if email_already_taken > 0:
-            raise ValueError(
-                "El correo electrónico se encuentra tomado por otro usuario.")
-        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-        if re.fullmatch(regex, value):
-            return value.lower()
-        raise ValueError(
-            "El correo electrónico no es válido.")
 
     @classmethod
     def find_by_email(cls, email):
@@ -105,15 +112,27 @@ class Task(Base):
     is_completed = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def serialize(self):
-        """Retorna el valor de task"""
-        return {
-            "id": self.id,
-            "task": self.task,
-            "description": self.description,
-            "user_id": self.user_id,
-            "is_completed": self.is_completed
-        }
+    @validates("task")
+    def task_required(self, key, value):
+        if value == "" or value is None:
+            raise ValueError(
+                "El título de la tarea es un campo requerido.")
+        return value
+
+    @validates("description")
+    def description_required(self, key, value):
+        if value == "" or value is None:
+            raise ValueError(
+                "La descripción de la tarea es un campo requerido.")
+        return value
+
+    def __repr__(self):
+        """ String representation  """
+        if self.id is not None:
+            return "<Task '#{}: {}'>".format(
+                self.id, self.task)
+        return "<Task 'NotSaved: {}'>".format(
+                    self.task)
 
     def set_as_completed(self, completed=True):
         """ Set task as completed """

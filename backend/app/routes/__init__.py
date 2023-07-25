@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, render_template, request
 from flask_cors import CORS
 from flask_jwt_extended import (
     create_access_token,
+    get_jwt_identity,
     jwt_required,
     JWTManager
 )
@@ -44,7 +45,7 @@ def home():
 
 @main.route("/register", methods=["POST"])
 def create_user():
-    """Recibe parámetros a través de la consulta y crea el usuario."""
+    """Function to create user"""
     try:
         args_json = request.get_json()
         try:
@@ -70,7 +71,7 @@ def create_user():
 
 @main.route("/login", methods=["POST"])
 def login_user():
-    """Recibe parámetros a través de la consulta y retorna un token"""
+    """ Function to log in """
     try:
         args_json = request.get_json()
         try:
@@ -108,7 +109,7 @@ def login_user():
 
 @main.route("/user/<int:user_id>")
 def get_user(user_id):
-    """Retorna la información del usuario según su ID"""
+    """ Return user info by id """
     try:
         user = User.find_by_id(user_id)
         if user:
@@ -126,7 +127,7 @@ def get_user(user_id):
 @main.route("/userlist/<int:id>", methods=["PUT", "DELETE"])
 @jwt_required()
 def update_user(id):
-    """Recibe parámetros para actualizar o deshabilitar al usuario"""
+    """ Function to update username """
     try:
         user = User.find_by_id(id)
         if user is None:
@@ -147,10 +148,9 @@ def update_user(id):
 @main.route("/tasks", methods=["POST"])
 @jwt_required()
 def create_task():
-    """Recibe parámetros para crear la tarea."""
+    """ Function to create a task """
     try:
         args_json = request.get_json()
-        print("primer var", args_json)
 
         try:
             args = task_schema.load(args_json)
@@ -168,17 +168,26 @@ def create_task():
         return jsonify(ERR_500), 500
 
 
-@main.route("/tasklist/<int:user_id>", methods=["GET"])
+@main.route("/tasklist", methods=["GET"])
 @jwt_required()
-def get_tasks(user_id):
-    """Retorna lista de tareas del usuario encontrado por el ID"""
+def get_tasks():
+    """ Function to get tasklist by user id """
     try:
-        tasks = Task.find_all_by_user_id(user_id)
-        if tasks:
-            return jsonify(tasks_schema.dump(tasks)), 200
+        email = get_jwt_identity()
+        user = User.find_by_email(email)
+        if user is None:
+            return jsonify(ERR_USER_NOT_FOUND), 404
+        try:
+            tasks = Task.find_all_by_user_id(user.id)
+            if tasks:
+                return jsonify(tasks_schema.dump(tasks)), 200
 
-        return jsonify(ERR_USER_NOT_FOUND), 404
+            return jsonify(ERR_USER_NOT_FOUND), 404
 
+        except Exception as e:
+            error_message = str(e)
+            logging.error(f"Error en get_tasks: {error_message}")
+            return jsonify(ERR_500), 500
     except Exception as e:
         error_message = str(e)
         logging.error(f"Error en get_tasks: {error_message}")
@@ -188,16 +197,18 @@ def get_tasks(user_id):
 @main.route("/task/<int:id>", methods=["DELETE", "PUT"])
 @jwt_required()
 def update_or_delete_task(id):
-    """Recibe parámetros de la tarea a modificar o eliminar"""
+    """ Function to delete or update task by id """
     try:
+        email = get_jwt_identity()
+        user = User.find_by_email(email)
         task = Task.find_by_id(id)
         if task is None:
             return jsonify(ERR_TASK_NOT_FOUND), 404
-
+        if user.id != task.user_id:
+            return jsonify(ERR_TASK_NOT_FOUND), 404
         if request.method == "DELETE":
             task.delete_from_db()
             return jsonify(SUC_TASK_DELETED), 204
-
         args_json = request.get_json()
         try:
             task.update(**args_json)
