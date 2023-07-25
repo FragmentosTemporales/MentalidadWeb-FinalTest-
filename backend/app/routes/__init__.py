@@ -45,7 +45,7 @@ def home():
 
 @main.route("/register", methods=["POST"])
 def create_user():
-    """Recibe parámetros a través de la consulta y crea el usuario."""
+    """Function to create user"""
     try:
         args_json = request.get_json()
         try:
@@ -71,7 +71,7 @@ def create_user():
 
 @main.route("/login", methods=["POST"])
 def login_user():
-    """Recibe parámetros a través de la consulta y retorna un token"""
+    """ Function to log in """
     try:
         args_json = request.get_json()
         try:
@@ -109,7 +109,7 @@ def login_user():
 
 @main.route("/user/<int:user_id>")
 def get_user(user_id):
-    """Retorna la información del usuario según su ID"""
+    """ Return user info by id """
     try:
         user = User.find_by_id(user_id)
         if user:
@@ -127,7 +127,7 @@ def get_user(user_id):
 @main.route("/userlist/<int:id>", methods=["PUT", "DELETE"])
 @jwt_required()
 def update_user(id):
-    """Recibe parámetros para actualizar o deshabilitar al usuario"""
+    """ Function to update username """
     try:
         user = User.find_by_id(id)
         if user is None:
@@ -148,7 +148,7 @@ def update_user(id):
 @main.route("/tasks", methods=["POST"])
 @jwt_required()
 def create_task():
-    """Recibe parámetros para crear la tarea."""
+    """ Function to create a task """
     try:
         args_json = request.get_json()
 
@@ -171,7 +171,7 @@ def create_task():
 @main.route("/tasklist/<int:user_id>", methods=["GET"])
 @jwt_required()
 def get_tasks(user_id):
-    """Retorna lista de tareas del usuario encontrado por el ID"""
+    """ Function to get tasklist by user id """
     try:
         email = get_jwt_identity()
         user = User.find_by_email(email)
@@ -198,7 +198,7 @@ def get_tasks(user_id):
 @main.route("/task/<int:id>", methods=["DELETE", "PUT"])
 @jwt_required()
 def update_or_delete_task(id):
-    """Recibe parámetros de la tarea a modificar o eliminar"""
+    """ Function to delete or update task by id """
     
     try:
         email = get_jwt_identity()

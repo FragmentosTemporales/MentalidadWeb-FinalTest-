@@ -2,6 +2,14 @@ import json
 import unittest
 from flask_jwt_extended import create_access_token 
 from app.models import User
+from app.messages import (
+    ERR_TASK_EMPTY,
+    ERR_EXISTING_USER,
+    ERR_USER_NOT_FOUND,
+    ERR_WRONG_USER_PASS,
+    SUC_USER_UPDATED,
+    SUC_NEW_USER
+)
 from app.schemas import UserSchema
 from tests import BaseTestCase
 from tests.utils.user import save_user_to_db
@@ -45,7 +53,7 @@ class TestUserEndpoint(BaseTestCase):
         )
         user = User.find_by_email("testing2@gmail.com")
         self.assertEqual(201, response.status_code)
-        self.assertEqual(response.json["message"], "Usuario guardado")
+        self.assertEqual(response.json, SUC_NEW_USER)
         self.assertIsInstance(user, User)
 
     def test_create_user_endpoint_fail(self):
@@ -63,7 +71,7 @@ class TestUserEndpoint(BaseTestCase):
             data=payload
         )
         self.assertEqual(400, response.status_code)
-        self.assertEqual(response.json["error"], "La cuenta ya existe o está deshabilitada.")
+        self.assertEqual(response.json, ERR_EXISTING_USER)
 
     def test_login_user_endpoint_ok(self):
         """ Test login user is ok """
@@ -94,7 +102,7 @@ class TestUserEndpoint(BaseTestCase):
             data=payload
         )
         self.assertEqual(400, response.status_code)
-        self.assertEqual(response.json["error"],"El usuario o la contraseña son incorrectos")
+        self.assertEqual(response.json, ERR_WRONG_USER_PASS)
 
     def test_get_user_endpoint_ok(self):
         """ Test get user is ok """
@@ -112,7 +120,7 @@ class TestUserEndpoint(BaseTestCase):
             "/user/{}".format(id)
         )
         self.assertEqual(404, response.status_code)
-        self.assertEqual(response.json["error"], "Usuario no encontrado")
+        self.assertEqual(response.json, ERR_USER_NOT_FOUND)
 
     def test_update_user_endpoint_ok(self):
         """ Test update user ok """
@@ -126,7 +134,7 @@ class TestUserEndpoint(BaseTestCase):
             data=json.dumps(self.data2)
         )
         self.assertEqual(200, res.status_code)
-        self.assertEqual(res.json["message"], "Usuario actualizado")
+        self.assertEqual(res.json, SUC_USER_UPDATED)
 
     def test_disable_user_endpoint_ok(self):
         """ Test disabled user ok """
@@ -164,7 +172,7 @@ class TestUserEndpoint(BaseTestCase):
             },
         )
         self.assertEqual(404, res.status_code)
-        self.assertEqual(res.json["error"], "Usuario no encontrado")
+        self.assertEqual(res.json, ERR_USER_NOT_FOUND)
 
 
 if __name__ == '__main__':

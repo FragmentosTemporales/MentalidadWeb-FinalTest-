@@ -3,6 +3,13 @@ import unittest
 from flask_jwt_extended import create_access_token
 from app.models import Task, User
 from app.schemas import TaskSchema
+from app.messages import (
+    ERR_TASK_EMPTY,
+    ERR_TASK_NOT_FOUND,
+    ERR_USER_NOT_FOUND,
+    SUC_TASK_OK,
+    SUC_TASK_UPDATED,
+)
 from tests import BaseTestCase
 from tests.utils.task import save_task_to_db
 from tests.utils.user import save_user_to_db
@@ -64,8 +71,7 @@ class TestTaskEndpoint(BaseTestCase):
             data=payload
         )
         self.assertEqual(201, response.status_code)
-        self.assertEqual(response.json["message"],
-                         "Tarea guardada exitósamente")
+        self.assertEqual(response.json, SUC_TASK_OK)
 
     def test_task_created_fail(self):
         """ test task is not created """
@@ -84,8 +90,7 @@ class TestTaskEndpoint(BaseTestCase):
             data=payload
         )
         self.assertEqual(400, response.status_code)
-        self.assertEqual(response.json["error"],
-                         "El valor de Tarea no puede estar vacío")
+        self.assertEqual(response.json, ERR_TASK_EMPTY)
 
     def test_get_tasks_suc(self):
         """ Test get tasks endpoint """
@@ -116,7 +121,7 @@ class TestTaskEndpoint(BaseTestCase):
             },
         )
         self.assertEqual(404, response.status_code)
-        self.assertEqual(response.json["error"], "Usuario no encontrado")
+        self.assertEqual(response.json, ERR_USER_NOT_FOUND)
 
     def test_update_task_suc(self):
         """ Test endopoint update task ok"""
@@ -130,8 +135,7 @@ class TestTaskEndpoint(BaseTestCase):
             data=json.dumps(self.update)
         )
         self.assertEqual(200, response.status_code)
-        self.assertEqual(response.json["message"],
-                        "Tarea modificada con éxito.")
+        self.assertEqual(response.json, SUC_TASK_UPDATED)
 
     def test_update_task_fail(self):
         """ Test endopoint update task fail"""
@@ -145,7 +149,7 @@ class TestTaskEndpoint(BaseTestCase):
             data=json.dumps(self.update)
         )
         self.assertEqual(404, response.status_code)
-        self.assertEqual(response.json["error"], "Tarea no encontrada")
+        self.assertEqual(response.json, ERR_TASK_NOT_FOUND)
 
     def test_delete_task_suc(self):
         """ Test endopoint delete task ok"""
@@ -170,7 +174,7 @@ class TestTaskEndpoint(BaseTestCase):
             }
         )
         self.assertEqual(404, response.status_code)
-        self.assertEqual(response.json["error"], "Tarea no encontrada")
+        self.assertEqual(response.json, ERR_TASK_NOT_FOUND)
 
 if __name__ == '__main__':
     unittest.main()
