@@ -23,7 +23,14 @@ class TestTaskEndpoint(BaseTestCase):
             "password": "12345",
             "is_disabled": False
         }
+        self.params2 = {
+            "username": "test",
+            "email": "example2@example.com",
+            "password": "12345",
+            "is_disabled": False
+        }
         self.user = save_user_to_db(self.params)
+        self.user2 = save_user_to_db(self.params2)
         self.update = {
             "task": "titulo update",
             "description": "descripcion update",
@@ -43,6 +50,7 @@ class TestTaskEndpoint(BaseTestCase):
             "user_id": 2
         }
         self.token = create_access_token(self.user.email)
+        self.token2 = create_access_token(self.user2.email)
 
     def test_task_created_suc(self):
         """ test task is created succesfully """
@@ -128,22 +136,17 @@ class TestTaskEndpoint(BaseTestCase):
     def test_update_task_suc(self):
         """ Test endopoint update task ok"""
         task = save_task_to_db(self.data)
+        print(task)
         response = self.client.put(
-            "/task/{}".format(999),
+            "/task/{}".format(task.id),
             headers={
                 "Content-Type": "application/json",
-                "Authorization": "Bearer {}".format(self.token)
+                "Authorization": "Bearer {}".format(self.token2)
             },
-            data=json.dumps({
-                "task": "titulo update",
-                "description": "descripcion update",
-                "is_completed": False,
-                "user_id": 999
-            })
+            data=json.dumps(self.update)
         )
         self.assertEqual(404, response.status_code)
-        self.assertEqual(response.json["error"], "Tarea no encontrada.")
-
+        self.assertEqual(response.json["error"], "Tarea no encontrada")
 
 if __name__ == '__main__':
     unittest.main()
