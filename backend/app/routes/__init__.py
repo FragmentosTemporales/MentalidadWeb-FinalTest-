@@ -7,6 +7,7 @@ from flask_jwt_extended import (
     jwt_required,
     JWTManager
 )
+from flask_restx import Api, Resource, fields
 from app.messages import (
     ERR_500,
     ERR_DISABLED_ACC,
@@ -29,12 +30,59 @@ from app.schemas import TaskSchema, UserSchema, LoginSchema
 main = Blueprint("main", __name__)
 jwt = JWTManager()
 cors = CORS(resources={r"/*": {"origins": "*"}})
+api = Api(
+    prefix="/api",
+    version='1.0',
+    title='TodoMVC API',
+    description='A simple TodoMVC API',
+    doc='/api/documentation/'
+)
 
 # Defining the schemas
 task_schema = TaskSchema()
 tasks_schema = TaskSchema(many=True)
 user_schema = UserSchema()
 login_schema = LoginSchema()
+
+
+@api.route("/login", endpoint="login")
+class LoginResource(Resource):
+    """  Class for auth resources """
+    def post(self):
+        """ Endpoint for user login """
+        try:
+            args_json = request.get_json()
+            try:
+                args = login_schema.load(args_json)
+            except Exception as e:
+                print(e)
+                raise e
+            else:
+                email = args["email"]
+                password = args["password"]
+                user = User.find_by_email(email)
+                if user is None or \
+                user.check_password(password) is False:
+                    return jsonify(ERR_WRONG_USER_PASS), 400
+
+                access_token = create_access_token(email)
+                user.is_disabled = False
+                user.save_to_db()
+
+                return {
+                    "token": access_token,
+                    "user": user_schema.dump(user),
+                    "email": user.email,
+                    "username": user.username,
+                    "user_id": user.id,
+                }, 200
+        except Exception as e:
+            error_message = str(e)
+            print(e)
+            logging.error(f"Error en login_user: {error_message}")
+            return ERR_500, 500
+
+
 
 
 @main.route("/")

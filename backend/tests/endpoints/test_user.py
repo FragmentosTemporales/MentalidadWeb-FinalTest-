@@ -18,6 +18,8 @@ user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 
 
+
+
 class TestUserEndpoint(BaseTestCase):
     """ Test that users endpoints works fine """
 
@@ -80,7 +82,7 @@ class TestUserEndpoint(BaseTestCase):
             "password": self.data.get("password")
         })
         response = self.client.post(
-            "/login",
+            "/api/login",
             headers={
                 "Content-Type": "application/json",
             },
@@ -176,3 +178,4 @@ class TestUserEndpoint(BaseTestCase):
 
 if __name__ == '__main__':
     unittest.main()
+

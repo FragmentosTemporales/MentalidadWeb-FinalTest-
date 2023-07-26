@@ -1,8 +1,10 @@
 import os
 from flask import Flask
+from flask_restx import Api, Resource, fields
+from werkzeug.middleware.proxy_fix import ProxyFix
 from app.config import config
 from app.models import db, migrate
-from app.routes import cors, jwt, main
+from app.routes import api, cors, jwt, main
 from app.schemas import ma
 
 
@@ -21,4 +23,6 @@ def create_app(test_mode=False):
     cors.init_app(app)
     app.register_blueprint(main)
     ma.init_app(app)
+    api.init_app(app)
+
     return app

@@ -106,7 +106,6 @@ class TestTaskEndpoint(BaseTestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(len(data), 2)
 
-    # TODO = revisar este caso
     def test_get_tasks_fail(self):
         """ Test get tasks endpoint """
         save_task_to_db(self.data)
