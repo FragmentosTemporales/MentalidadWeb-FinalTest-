@@ -1,7 +1,5 @@
 import os
-from flask import Flask
-from flask_restx import Api, Resource, fields
-from werkzeug.middleware.proxy_fix import ProxyFix
+from flask import Flask, render_template
 from app.config import config
 from app.models import db, migrate
 from app.routes import api, cors, jwt, main
@@ -24,5 +22,17 @@ def create_app(test_mode=False):
     app.register_blueprint(main)
     ma.init_app(app)
     api.init_app(app)
+
+    @app.route("/")
+    def hello_world():
+        return render_template('index.html')
+
+    @app.route('/static/<path:filename>')
+    def static_files(filename):
+        return app.send_static_file(filename)
+
+    @app.errorhandler(404)
+    def not_found(e):
+        return render_template('index.html')
 
     return app

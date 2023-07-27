@@ -4,7 +4,8 @@ import { Context } from "../store/Context";
 import "../App.css";
 
 function Navbar() {
-  const { actions } = useContext(Context);
+  const { actions, store } = useContext(Context);
+  const { token } = store;
 
   const handleClick = () => {
     actions.logout();
@@ -25,30 +26,30 @@ function Navbar() {
           </button>
           <ul className="dropdown-menu">
             <li>
-              <Link className="dropdown-item" to="/">
+              {token ? <Link className="dropdown-item" to="/">
                 <h6>Home</h6>
-              </Link>
+              </Link> : null}
             </li>
             <li>
-              <Link className="dropdown-item" to="/register">
+            {token ? null : <Link className="dropdown-item" to="/register">
                 <h6>Register</h6>
-              </Link>
+              </Link>}
             </li>
             <li>
-              <Link className="dropdown-item" to="/login">
+              {token ? null : <Link className="dropdown-item" to="/login">
                 <h6>Login</h6>
-              </Link>
+              </Link>}
             </li>
             <li>
-              <Link className="dropdown-item" to="/user">
+              {token ? <Link className="dropdown-item" to="/user">
                 <h6>Settings</h6>
-              </Link>
+              </Link> : null}
             </li>
           </ul>
         </div>
         <div className="logout">
           <button onClick={handleClick} className="btn btn-dark text-white rounded-5 shadow">
-          Logout
+            Logout
           </button>
         </div>
       </div>
