@@ -38,6 +38,7 @@ api = Api(
     description="App gestión tareas",
     doc="/api/documentation/",
     authorizations=authorizations,
+    security="apikey"
 )
 
 # Defining the schemas
@@ -214,16 +215,16 @@ class UserResource(Resource):
             return ERR_PROCESSING_REQ, 500
 
 
-@api.doc(security="token")
+@api.doc(security="apikey")
 @api.route("/task", endpoint="task")
 class TaskCreateResource(Resource):
     """Function with methods to create task"""
-
     @api.expect(task_fields, status=200)
     @api.doc(responses={400: "El valor de Tarea no puede estar vacío"})
     @api.doc(responses={201: "Tarea guardada exitósamente"})
     @jwt_required()
     def post(self):
+        """ Function to post a new task """
         try:
             args_json = request.get_json()
             try:
@@ -241,11 +242,14 @@ class TaskCreateResource(Resource):
             logging.error(f"Error en create_task: {error_message}")
             return ERR_500, 500
 
-
+@api.doc(security="apikey")
 @api.route("/task/<int:id>", endpoint="task/<int:id>")
 class TaskResource(Resource):
     """Function with methods for Task"""
 
+    @api.expect(task_fields, status=200)
+    @api.doc(responses={404: "Tarea no encontrada"})
+    @api.doc(responses={200: "Tarea modificada con éxito."})
     @jwt_required()
     def put(self, id):
         try:
