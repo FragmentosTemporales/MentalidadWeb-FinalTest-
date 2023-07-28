@@ -5,7 +5,7 @@ import React, { useContext } from "react";
 const PrivateRoutes = () => {
     const { store } = useContext(Context)
     const { token } = store;
-    let auth = { 'token': token !== '' };
+    let auth = {token};
     return (
        auth.token ? <Outlet/> : <Navigate to="/login" />
     )

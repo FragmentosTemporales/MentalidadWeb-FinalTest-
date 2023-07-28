@@ -61,7 +61,7 @@ class TestTaskEndpoint(BaseTestCase):
         """ test task is created succesfully """
         payload = json.dumps(self.data)
         response = self.client.post(
-            "/tasks",
+            "/api/task",
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer {}".format(self.token)
@@ -80,7 +80,7 @@ class TestTaskEndpoint(BaseTestCase):
             "user_id": 1
         })
         response = self.client.post(
-            "/tasks",
+            "/api/task",
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer {}".format(self.token)
@@ -96,7 +96,7 @@ class TestTaskEndpoint(BaseTestCase):
         save_task_to_db(self.data)
         save_task_to_db(self.data2)
         response = self.client.get(
-            "/tasklist",
+            "/api/tasklist",
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer {}".format(self.token)
@@ -106,14 +106,13 @@ class TestTaskEndpoint(BaseTestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(len(data), 2)
 
-    # TODO = revisar este caso
     def test_get_tasks_fail(self):
         """ Test get tasks endpoint """
         save_task_to_db(self.data)
         save_task_to_db(self.data)
         save_task_to_db(self.data2)
         response = self.client.get(
-            "/tasklist",
+            "/api/tasklist",
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer "
@@ -125,7 +124,7 @@ class TestTaskEndpoint(BaseTestCase):
         """ Test endopoint update task ok"""
         task = save_task_to_db(self.data)
         response = self.client.put(
-            "/task/{}".format(task.id),
+            "/api/task/{}".format(task.id),
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer {}".format(self.token)
@@ -139,7 +138,7 @@ class TestTaskEndpoint(BaseTestCase):
         """ Test endopoint update task fail"""
         task = save_task_to_db(self.data)
         response = self.client.put(
-            "/task/{}".format(task.id),
+            "/api/task/{}".format(task.id),
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer {}".format(self.token2)
@@ -153,7 +152,7 @@ class TestTaskEndpoint(BaseTestCase):
         """ Test endopoint delete task ok"""
         task = save_task_to_db(self.data)
         response = self.client.delete(
-            "/task/{}".format(task.id),
+            "/api/task/{}".format(task.id),
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer {}".format(self.token)
@@ -165,7 +164,7 @@ class TestTaskEndpoint(BaseTestCase):
         """ Test endopoint delete task fail"""
         task = save_task_to_db(self.data)
         response = self.client.delete(
-            "/task/{}".format(task.id),
+            "/api/task/{}".format(task.id),
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer {}".format(self.token2)

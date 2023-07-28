@@ -1,16 +1,18 @@
 import toast from "react-hot-toast";
+
+const {REACT_APP_API_ENDPOINT} = process.env;
 const getState = ({ setStore, getActions, getStore }) => {
   return {
     store: {
       user_id: "",
-      token: "",
+      token: sessionStorage.getItem("token"),
       email: "",
       username: "",
       tasks: [],
     },
     actions: {
       userRegister: ({ username, email, password }, navigate) => {
-        const url = "http://localhost:8585/register";
+        const url = `${REACT_APP_API_ENDPOINT}/register`;
         fetch(url, {
           headers: {
             "Content-Type": "application/json",
@@ -33,7 +35,7 @@ const getState = ({ setStore, getActions, getStore }) => {
           });
       },
       userLogin: ({ email, password }, navigate) => {
-        const url = "http://localhost:8585/login";
+        const url = `${REACT_APP_API_ENDPOINT}/login`;
         fetch(url, {
           headers: {
             "Content-Type": "application/json",
@@ -49,6 +51,7 @@ const getState = ({ setStore, getActions, getStore }) => {
             return res.json()
           })
           .then((res) => {
+            sessionStorage.setItem("token", res.token)
             setStore({
               token: res.token,
               email: res.email,
@@ -65,13 +68,12 @@ const getState = ({ setStore, getActions, getStore }) => {
           });
       },
       setUsername: (data, navigate) => {
-        const { user_id, token } = getStore();
-        const url = "http://localhost:8585/userlist/";
-        const urlToFetch = url + user_id;
+        const { token } = getStore();
+        const urlToFetch = `${REACT_APP_API_ENDPOINT}/user`;
         fetch(urlToFetch, {
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${token}`,
           },
           method: "PUT",
           body: JSON.stringify({
@@ -89,20 +91,22 @@ const getState = ({ setStore, getActions, getStore }) => {
           });
       },
       getUser: (navigate) => {
-        const { user_id, token } = getStore()
-        const url = "http://localhost:8585/user/";
-        const urlToFetch = url + user_id
+        const { token } = getStore()
+        const urlToFetch = `${REACT_APP_API_ENDPOINT}/user`;
         fetch(urlToFetch, {
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${token}`,
           },
         })
           .then((res) => res.json())
           .then((res) => {
             setStore({
-              username: res.username
+              user_id: res.id,
+              username: res.username,
+              email: res.email,
             })
+            getActions().fetchTasks()
             navigate("/")
           })
           .catch((error) => {
@@ -110,13 +114,12 @@ const getState = ({ setStore, getActions, getStore }) => {
           })
       },
       disabledUser: () => {
-        const { user_id, token } = getStore();
-        const url = "http://localhost:8585/userlist/";
-        const urlToFetch = url + user_id;
+        const { token } = getStore();
+        const urlToFetch = `${REACT_APP_API_ENDPOINT}/user`;
         fetch(urlToFetch, {
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${token}`,
           },
           method: "DELETE",
         })
@@ -130,6 +133,7 @@ const getState = ({ setStore, getActions, getStore }) => {
           })
       },
       logout: () => {
+        sessionStorage.removeItem("token");
         setStore({
           user_id: "",
           token: "",
@@ -141,11 +145,11 @@ const getState = ({ setStore, getActions, getStore }) => {
       },
       fetchTasks: () => {
         const { token } = getStore();
-        const url = "http://localhost:8585/tasklist";
+        const url = `${REACT_APP_API_ENDPOINT}/tasklist`;
         fetch(url, {
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${token}`,
           },
         })
           .then((res) => {
@@ -166,12 +170,12 @@ const getState = ({ setStore, getActions, getStore }) => {
       },
       newTask: ({ task, description }) => {
         const { token } = getStore();
-        const url = "http://localhost:8585/tasks";
+        const url = `${REACT_APP_API_ENDPOINT}/task`;
         const { user_id } = getStore();
         fetch(url, {
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${token}`,
           },
           method: "POST",
           body: JSON.stringify({
@@ -192,12 +196,11 @@ const getState = ({ setStore, getActions, getStore }) => {
       },
       deleteTask: (id) => {
         const { token } = getStore();
-        const url = "http://localhost:8585/task/";
-        const urlToFetch = url + id;
+        const urlToFetch = `${REACT_APP_API_ENDPOINT}/task/${id}`;
         fetch(urlToFetch, {
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${token}`,
           },
           method: "DELETE",
         })
@@ -216,12 +219,11 @@ const getState = ({ setStore, getActions, getStore }) => {
       },
       updateTask: ({ task, description }, id) => {
         const { token, user_id } = getStore();
-        console.log(user_id);
-        const urlToFetch = `http://localhost:8585/task/${id}`;
+        const urlToFetch = `${REACT_APP_API_ENDPOINT}/task/${id}`;
         fetch(urlToFetch, {
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${token}`,
           },
           method: "PUT",
           body: JSON.stringify({
@@ -244,12 +246,11 @@ const getState = ({ setStore, getActions, getStore }) => {
       },
       setCompleted: (id) => {
         const { token } = getStore();
-        const url = "http://localhost:8585/task/";
-        const urlToFetch = url + id;
+        const urlToFetch = `${REACT_APP_API_ENDPOINT}/task/${id}`;
         fetch(urlToFetch, {
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${token}`,
           },
           method: "PUT",
           body: JSON.stringify({
@@ -268,12 +269,11 @@ const getState = ({ setStore, getActions, getStore }) => {
       },
       setIncomplete: (id) => {
         const { token } = getStore();
-        const url = "http://localhost:8585/task/";
-        const urlToFetch = url + id;
+        const urlToFetch = `${REACT_APP_API_ENDPOINT}/task/${id}`;
         fetch(urlToFetch, {
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${token}`,
           },
           method: "PUT",
           body: JSON.stringify({
