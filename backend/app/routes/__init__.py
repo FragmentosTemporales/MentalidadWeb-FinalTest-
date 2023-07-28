@@ -7,7 +7,7 @@ from flask_jwt_extended import (
     jwt_required,
     JWTManager,
 )
-from flask_restx import Api, Resource
+from flask_restx import Api, Resource, Namespace, fields
 from app.messages import (
     ERR_500,
     ERR_DISABLED_ACC,
@@ -24,6 +24,7 @@ from app.messages import (
     SUC_USER_UPDATED,
 )
 from app.models import User, Task
+from app.routes.utils import authorizations
 from app.schemas import TaskSchema, UserSchema, LoginSchema
 
 
@@ -33,10 +34,17 @@ cors = CORS(resources={r"/*": {"origins": "*"}})
 api = Api(
     prefix="/api",
     version="1.0",
-    title="TodoMVC API",
-    description="A simple TodoMVC API",
+    title="MentalidadWeb API",
+    description="App gestión tareas",
     doc="/api/documentation/",
 )
+
+# api = Namespace(
+#     "audience",
+#     description="API audiences's data related operations and management.",
+#     authorizations=authorizations,
+#     security="apikey"
+# )
 
 # Defining the schemas
 task_schema = TaskSchema()
@@ -44,11 +52,35 @@ tasks_schema = TaskSchema(many=True)
 user_schema = UserSchema()
 login_schema = LoginSchema()
 
+login_fields = api.model('LoginResource', {
+    "email": fields.String(
+        required=True,
+        description="The user's account email"
+    ),
+    "password": fields.String(
+        required=True,
+        description="The user's account password"
+    ),
+})
+task_fields = api.model('LoginResource', {
+    "email": fields.String(
+        required=True,
+        description="The user's account email"
+    ),
+    "password": fields.String(
+        required=True,
+        description="The user's account password"
+    ),
+})
+
 
 @api.route("/login", endpoint="login")
 class LoginResource(Resource):
     """Class for auth resources"""
 
+    @api.expect(login_fields, status=200)
+    @api.doc(responses={400: "Bad Request"})
+    @api.doc(responses={200: "Success"})
     def post(self):
         """Endpoint for user login"""
         try:
