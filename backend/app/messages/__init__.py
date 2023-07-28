@@ -29,7 +29,7 @@ ERR_500 = {
     "error": "Error al procesar la solicitud"
 }
 SUC_NEW_USER = {
-    "message": "Usuario guardado"
+    "message": "Usuario guardado."
 }
 ERR_TASK_NOT_FOUND = {
     "error": "Tarea no encontrada"

@@ -37,14 +37,8 @@ api = Api(
     title="MentalidadWeb API",
     description="App gestión tareas",
     doc="/api/documentation/",
+    authorizations=authorizations,
 )
-
-# api = Namespace(
-#     "audience",
-#     description="API audiences's data related operations and management.",
-#     authorizations=authorizations,
-#     security="apikey"
-# )
 
 # Defining the schemas
 task_schema = TaskSchema()
@@ -62,7 +56,7 @@ login_fields = api.model('LoginResource', {
         description="The user's account password"
     ),
 })
-task_fields = api.model('LoginResource', {
+register_fields = api.model('RegisterResource', {
     "email": fields.String(
         required=True,
         description="The user's account email"
@@ -71,6 +65,23 @@ task_fields = api.model('LoginResource', {
         required=True,
         description="The user's account password"
     ),
+    "username": fields.String(
+        required=True,
+        description="The user's account username"
+    )
+})
+task_fields = api.model('TaskCreateResource', {
+    "task": fields.String(
+        required=True,
+        description="Task title"
+    ),
+    "description": fields.String(
+        required=True,
+        description="Task description"
+    ),
+   "user_id": fields.Integer(
+       description="Unique user ID owner of the task"
+   )
 })
 
 
@@ -119,6 +130,9 @@ class LoginResource(Resource):
 class RegisterResource(Resource):
     """Class for register"""
 
+    @api.expect(register_fields, status=201)
+    @api.doc(responses={400: "La cuenta ya existe o está deshabilitada."})
+    @api.doc(responses={201: "Usuario guardado."})
     def post(self):
         """Function to create user"""
         try:
@@ -148,6 +162,7 @@ class RegisterResource(Resource):
 class UserResource(Resource):
     """Function with methods to user"""
 
+   
     @jwt_required()
     def get(self):
         """Function to get user info"""
@@ -199,10 +214,14 @@ class UserResource(Resource):
             return ERR_PROCESSING_REQ, 500
 
 
+@api.doc(security="token")
 @api.route("/task", endpoint="task")
 class TaskCreateResource(Resource):
     """Function with methods to create task"""
 
+    @api.expect(task_fields, status=200)
+    @api.doc(responses={400: "El valor de Tarea no puede estar vacío"})
+    @api.doc(responses={201: "Tarea guardada exitósamente"})
     @jwt_required()
     def post(self):
         try:
