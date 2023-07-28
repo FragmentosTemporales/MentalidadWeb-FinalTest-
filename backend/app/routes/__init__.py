@@ -7,7 +7,7 @@ from flask_jwt_extended import (
     jwt_required,
     JWTManager,
 )
-from flask_restx import Api, Resource, Namespace, fields
+from flask_restx import Api, Resource, fields
 from app.messages import (
     ERR_500,
     ERR_DISABLED_ACC,
@@ -171,7 +171,6 @@ class LoginResource(Resource):
                 }, 200
         except Exception as e:
             error_message = str(e)
-            print(e)
             logging.error(f"Error en login_user: {error_message}")
             return ERR_500, 500
 
