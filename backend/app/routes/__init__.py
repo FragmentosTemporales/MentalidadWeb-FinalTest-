@@ -71,19 +71,68 @@ register_fields = api.model('RegisterResource', {
         description="The user's account username"
     )
 })
+user_fields = api.model('UserResource', {
+    "username": fields.String(
+        required=True,
+        description="The user's account username"
+    ),
+    "is_disabled": fields.Boolean(
+        required=True,
+        description="User status.",
+        default=False
+    )
+})
 task_fields = api.model('TaskCreateResource', {
     "task": fields.String(
         required=True,
         description="Task title"
     ),
     "description": fields.String(
-        required=True,
+        required=False,
         description="Task description"
     ),
-   "user_id": fields.Integer(
-       description="Unique user ID owner of the task"
-   )
+    "is_completed": fields.Boolean(
+        required=False,
+        description="Task status",
+        default=False
+    ),
+    "user_id": fields.Integer(
+        required=True,
+        description="Unique user ID owner of the task"
+    )
 })
+
+
+@api.route("/register", endpoint="register")
+class RegisterResource(Resource):
+    """Class for register"""
+
+    @api.expect(register_fields, status=201)
+    @api.doc(responses={201: "Usuario guardado."})
+    @api.doc(responses={400: "La cuenta ya existe o está deshabilitada."})
+    def post(self):
+        """Function to create user"""
+        try:
+            args_json = request.get_json()
+            try:
+                args = user_schema.load(args_json)
+            except Exception as e:
+                print(e)
+                raise e
+            else:
+                email = args["email"]
+                password = args["password"]
+                user_exists = User.exists(email)
+                if user_exists:
+                    return ERR_EXISTING_USER, 400
+                user = User(**args)
+                user.set_password(password)
+                user.save_to_db()
+                return SUC_NEW_USER, 201
+        except Exception as e:
+            error_message = str(e)
+            logging.error(f"Error en create_user: {error_message}")
+            return ERR_500, 500
 
 
 @api.route("/login", endpoint="login")
@@ -91,8 +140,8 @@ class LoginResource(Resource):
     """Class for auth resources"""
 
     @api.expect(login_fields, status=200)
-    @api.doc(responses={400: "Bad Request"})
     @api.doc(responses={200: "Success"})
+    @api.doc(responses={400: "El usuario o la contraseña son incorrectos"})
     def post(self):
         """Endpoint for user login"""
         try:
@@ -127,43 +176,13 @@ class LoginResource(Resource):
             return ERR_500, 500
 
 
-@api.route("/register", endpoint="register")
-class RegisterResource(Resource):
-    """Class for register"""
-
-    @api.expect(register_fields, status=201)
-    @api.doc(responses={400: "La cuenta ya existe o está deshabilitada."})
-    @api.doc(responses={201: "Usuario guardado."})
-    def post(self):
-        """Function to create user"""
-        try:
-            args_json = request.get_json()
-            try:
-                args = user_schema.load(args_json)
-            except Exception as e:
-                print(e)
-                raise e
-            else:
-                email = args["email"]
-                password = args["password"]
-                user_exists = User.exists(email)
-                if user_exists:
-                    return ERR_EXISTING_USER, 400
-                user = User(**args)
-                user.set_password(password)
-                user.save_to_db()
-                return SUC_NEW_USER, 201
-        except Exception as e:
-            error_message = str(e)
-            logging.error(f"Error en create_user: {error_message}")
-            return ERR_500, 500
-
-
+@api.doc(security="apikey")
 @api.route("/user", endpoint="user")
 class UserResource(Resource):
     """Function with methods to user"""
 
-   
+    @api.doc(responses={200: "Success"})
+    @api.doc(responses={404: "Usuario no encontrado"})
     @jwt_required()
     def get(self):
         """Function to get user info"""
@@ -180,6 +199,9 @@ class UserResource(Resource):
             logging.error(f"Error en get_user: {error_message}")
             return ERR_500, 500
 
+    @api.expect(user_fields, status=200)
+    @api.doc(responses={200: "Success"})
+    @api.doc(responses={404: "Usuario no encontrado"})
     @jwt_required()
     def put(self):
         """Function to update user info"""
@@ -200,9 +222,10 @@ class UserResource(Resource):
             logging.error(f"Error en update_user: {error_message}")
             return ERR_PROCESSING_REQ, 500
 
+    @api.doc(responses={204: "Cuenta deshabilitada."})
     @jwt_required()
     def delete(self):
-        """Function to update user info"""
+        """Function to delete user"""
         try:
             email = get_jwt_identity()
             user = User.find_by_email(email)
@@ -219,9 +242,10 @@ class UserResource(Resource):
 @api.route("/task", endpoint="task")
 class TaskCreateResource(Resource):
     """Function with methods to create task"""
-    @api.expect(task_fields, status=200)
-    @api.doc(responses={400: "El valor de Tarea no puede estar vacío"})
+
+    @api.expect(task_fields, status=201)
     @api.doc(responses={201: "Tarea guardada exitósamente"})
+    @api.doc(responses={400: "El valor de Tarea no puede estar vacío"})
     @jwt_required()
     def post(self):
         """ Function to post a new task """
@@ -242,6 +266,7 @@ class TaskCreateResource(Resource):
             logging.error(f"Error en create_task: {error_message}")
             return ERR_500, 500
 
+
 @api.doc(security="apikey")
 @api.route("/task/<int:id>", endpoint="task/<int:id>")
 class TaskResource(Resource):
@@ -252,6 +277,7 @@ class TaskResource(Resource):
     @api.doc(responses={200: "Tarea modificada con éxito."})
     @jwt_required()
     def put(self, id):
+        """ Function to update a task by id """
         try:
             email = get_jwt_identity()
             user = User.find_by_email(email)
@@ -272,8 +298,11 @@ class TaskResource(Resource):
             logging.error(f"Error en update: {error_message}")
             return ERR_500, 500
 
+    @api.doc(responses={204: "Tarea eliminada."})
+    @api.doc(responses={404: "Tarea no encontrada"})
     @jwt_required()
     def delete(self, id):
+        """ Function to delete a task by id """
         try:
             email = get_jwt_identity()
             user = User.find_by_email(email)
@@ -290,12 +319,16 @@ class TaskResource(Resource):
             return ERR_500, 500
 
 
+@api.doc(security="apikey")
 @api.route("/tasklist", endpoint="tasklist")
 class TasksResources(Resource):
     """Function to get tasks list"""
 
+    @api.doc(responses={200: "Success"})
+    @api.doc(responses={404: "Usuario no encontrado."})
     @jwt_required()
     def get(self):
+        """ Function to get the task list """
         try:
             email = get_jwt_identity()
             user = User.find_by_email(email)
